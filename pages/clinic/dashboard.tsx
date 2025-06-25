@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import DashboardLayout from '../../components/DashboardLayout';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Appointment {
   id: string;
@@ -36,7 +37,10 @@ interface ClinicStats {
 
 export default function ClinicDashboard() {
   const router = useRouter();
+  const { user, userData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [payingBaseFee, setPayingBaseFee] = useState(false);
+  const [baseFeeError, setBaseFeeError] = useState('');
 
   const [appointments] = useState<Appointment[]>([
     {
@@ -101,6 +105,32 @@ export default function ClinicDashboard() {
     { name: '保険請求', href: '/clinic/insurance-claims', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
   ];
 
+  const handlePayBaseFee = async () => {
+    if (!user || !userData?.email) {
+      setBaseFeeError('ログイン情報が見つかりません。再度ログインしてください。');
+      return;
+    }
+    setPayingBaseFee(true);
+    setBaseFeeError('');
+    try {
+      const res = await fetch('/api/stripe/create-clinic-base-fee-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userData.email, userId: user.uid }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setBaseFeeError(data.error || 'Stripe Checkoutの作成に失敗しました。');
+      }
+    } catch (err) {
+      setBaseFeeError('Stripe Checkoutへのリダイレクト中にエラーが発生しました。');
+    } finally {
+      setPayingBaseFee(false);
+    }
+  };
+
   return (
     <DashboardLayout allowedRoles={['clinic']}>
       <div className="min-h-screen bg-gray-100">
@@ -132,6 +162,19 @@ export default function ClinicDashboard() {
                 </button>
               </div>
             </div>
+            {/* Base Fee Payment Button */}
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={handlePayBaseFee}
+                disabled={payingBaseFee}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+              >
+                {payingBaseFee ? '処理中...' : '基本料金を支払う'}
+              </button>
+            </div>
+            {baseFeeError && (
+              <div className="mt-2 text-red-600 text-sm">{baseFeeError}</div>
+            )}
           </div>
         </nav>
 

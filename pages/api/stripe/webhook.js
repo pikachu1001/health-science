@@ -11,11 +11,38 @@ export const config = {
 };
 
 const handleCheckoutCompleted = async (session) => {
-    const { userId } = session.metadata;
+    const { userId, type } = session.metadata;
     const stripeSubscriptionId = session.subscription;
 
     if (!userId || !stripeSubscriptionId) {
         console.error('Webhook Error: Missing userId or subscriptionId in metadata.');
+        return;
+    }
+
+    // If this is a clinic base fee payment
+    if (type === 'clinic_base_fee') {
+        // Update the clinic's baseFeeStatus and store Stripe Customer ID in Firestore
+        const clinicRef = adminDb.collection('clinics').doc(userId);
+        await clinicRef.update({ 
+            baseFeeStatus: 'active', 
+            baseFeeStripeSubscriptionId: stripeSubscriptionId, 
+            baseFeeStripeCustomerId: session.customer,
+            baseFeeUpdatedAt: new Date() 
+        });
+        // Add activity feed entry
+        const activityRef = adminDb.collection('activity_feed').doc();
+        await activityRef.set({
+            activityId: activityRef.id,
+            type: 'base_fee_paid',
+            userId,
+            clinicId: userId,
+            message: `クリニックの基本料金が支払われました。`,
+            timestamp: new Date(),
+            details: {
+                amount: 'base_fee',
+            },
+        });
+        console.log(`Clinic base fee paid and status updated for clinic ${userId}`);
         return;
     }
 
@@ -66,6 +93,76 @@ const handleCheckoutCompleted = async (session) => {
     console.log(`Successfully created subscription ${subscriptionRef.id} for user ${userId}`);
 };
 
+const handlePaymentFailed = async (invoice) => {
+    const stripeSubscriptionId = invoice.subscription;
+    if (!stripeSubscriptionId) {
+        console.error('Webhook Error: Missing subscription ID in invoice.payment_failed event.');
+        return;
+    }
+    // Find the subscription in Firestore
+    const subSnap = await adminDb.collection('subscriptions')
+        .where('stripeSubscriptionId', '==', stripeSubscriptionId)
+        .limit(1)
+        .get();
+    if (subSnap.empty) {
+        console.error(`No Firestore subscription found for Stripe subscription ID: ${stripeSubscriptionId}`);
+        return;
+    }
+    const subDoc = subSnap.docs[0];
+    await subDoc.ref.update({ status: 'suspended', updatedAt: new Date(), reminderSent: true });
+    // Add activity feed entry
+    const activityRef = adminDb.collection('activity_feed').doc();
+    await activityRef.set({
+        activityId: activityRef.id,
+        type: 'payment_failed',
+        userId: subDoc.data().patientId,
+        clinicId: subDoc.data().clinicId,
+        message: `患者のサブスクリプション支払いが失敗しました。リマインダーを送信しました。`,
+        timestamp: new Date(),
+        details: {
+            plan: subDoc.data().plan,
+            amount: subDoc.data().amount,
+        },
+    });
+    // Simulate sending an email reminder
+    console.log(`Simulated: Sent payment failure reminder to user ${subDoc.data().patientId}`);
+    console.log(`Marked subscription ${subDoc.id} as suspended due to payment failure.`);
+};
+
+const handleSubscriptionDeleted = async (subscription) => {
+    const stripeSubscriptionId = subscription.id;
+    if (!stripeSubscriptionId) {
+        console.error('Webhook Error: Missing subscription ID in customer.subscription.deleted event.');
+        return;
+    }
+    // Find the subscription in Firestore
+    const subSnap = await adminDb.collection('subscriptions')
+        .where('stripeSubscriptionId', '==', stripeSubscriptionId)
+        .limit(1)
+        .get();
+    if (subSnap.empty) {
+        console.error(`No Firestore subscription found for Stripe subscription ID: ${stripeSubscriptionId}`);
+        return;
+    }
+    const subDoc = subSnap.docs[0];
+    await subDoc.ref.update({ status: 'cancelled', updatedAt: new Date() });
+    // Add activity feed entry
+    const activityRef = adminDb.collection('activity_feed').doc();
+    await activityRef.set({
+        activityId: activityRef.id,
+        type: 'subscription_cancelled',
+        userId: subDoc.data().patientId,
+        clinicId: subDoc.data().clinicId,
+        message: `患者のサブスクリプションがキャンセルされました。`,
+        timestamp: new Date(),
+        details: {
+            plan: subDoc.data().plan,
+            amount: subDoc.data().amount,
+        },
+    });
+    console.log(`Marked subscription ${subDoc.id} as cancelled due to Stripe event.`);
+};
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         res.setHeader('Allow', 'POST');
@@ -87,6 +184,14 @@ export default async function handler(req, res) {
     // Handle the event
     if (event.type === 'checkout.session.completed') {
         await handleCheckoutCompleted(event.data.object);
+    }
+    // Handle failed payment
+    if (event.type === 'invoice.payment_failed') {
+        await handlePaymentFailed(event.data.object);
+    }
+    // Handle subscription cancellation
+    if (event.type === 'customer.subscription.deleted') {
+        await handleSubscriptionDeleted(event.data.object);
     }
 
     res.status(200).json({ received: true });
