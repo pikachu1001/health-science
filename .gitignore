@@ -24,6 +24,8 @@ yarn-error.log*
 
 # local env files
 
+service-account-key.json
+
 .env*
 
 # vercel

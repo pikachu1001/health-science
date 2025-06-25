@@ -56,3 +56,5 @@ export const plans: Plan[] = [
     priceId: 'price_1RdrYAPGrTk9weIixrMORCJr', // TODO: Replace with your real Stripe Price ID
   },
 ];
+
+module.exports = { plans };

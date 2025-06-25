@@ -28,7 +28,11 @@ export default function SubscriptionPage() {
       const res = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId: selectedPlan.priceId, email: userData.email }),
+        body: JSON.stringify({ 
+          priceId: selectedPlan.priceId, 
+          email: userData.email,
+          userId: user.uid
+        }),
       });
       const data = await res.json();
       if (data.url) {

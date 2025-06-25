@@ -8,9 +8,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { priceId, email } = req.body;
-  if (!priceId || !email) {
-    return res.status(400).json({ error: 'Missing priceId or email' });
+  const { priceId, email, userId } = req.body;
+  if (!priceId || !email || !userId) {
+    return res.status(400).json({ error: 'Missing priceId, email, or userId' });
   }
 
   try {
@@ -24,6 +24,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           quantity: 1,
         },
       ],
+      metadata: {
+        userId: userId,
+      },
       success_url: `${req.headers.origin}/patient/dashboard?checkout=success`,
       cancel_url: `${req.headers.origin}/patient/subscription?checkout=cancel`,
     });

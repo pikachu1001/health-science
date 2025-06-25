@@ -14,6 +14,7 @@
     "firebase": "^11.9.1",
     "firebase-admin": "^13.4.0",
     "next": "^13.4.19",
+    "raw-body": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",
