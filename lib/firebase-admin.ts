@@ -18,8 +18,14 @@ try {
     // The functions below will fail gracefully if admin isn't initialized.
 }
 
-// Export auth and firestore instances, checking if initialization was successful
-const adminAuth = admin.apps.length ? admin.auth() : null;
-const adminDb = admin.apps.length ? admin.firestore() : null;
+if (!(global as any)._adminAuth) {
+    (global as any)._adminAuth = admin.apps.length ? admin.auth() : null;
+}
+if (!(global as any)._adminDb) {
+    (global as any)._adminDb = admin.apps.length ? admin.firestore() : null;
+}
 
-module.exports = { adminAuth, adminDb }; 
+module.exports = {
+    adminAuth: (global as any)._adminAuth,
+    adminDb: (global as any)._adminDb,
+}; 
