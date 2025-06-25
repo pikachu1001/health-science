@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 // Replace with your actual base fee price ID from Stripe
-const BASE_FEE_PRICE_ID = 'price_1Rcgnt2XvBirdvBflN9V4G7x';
+const BASE_FEE_PRICE_ID='price_1Rcgnt2XvBirdvBflN9V4G7x';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
@@ -15,7 +15,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!email || !userId) {
         return res.status(400).json({ error: 'Missing email or userId' });
     }
-
     try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],

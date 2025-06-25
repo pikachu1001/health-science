@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Appointment {
   id: string;
@@ -31,6 +32,7 @@ interface Provider {
 }
 
 export default function PatientAppointments() {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -108,6 +110,16 @@ export default function PatientAppointments() {
       ],
     },
   ]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/patient/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
   const handleBookAppointment = async () => {
     setIsLoading(true);

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface InsuranceClaim {
   id: string;
@@ -16,6 +17,7 @@ interface InsuranceClaim {
 }
 
 export default function InsuranceClaims() {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -58,6 +60,16 @@ export default function InsuranceClaims() {
       notes: 'Payment received on 2024-03-17',
     },
   ]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/clinic/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
   const filteredClaims = claims.filter(claim => 
     selectedStatus === 'all' || claim.status === selectedStatus

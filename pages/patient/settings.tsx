@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface NotificationSetting {
   id: string;
@@ -17,6 +18,7 @@ interface SecuritySetting {
 }
 
 export default function Settings() {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'account' | 'notifications' | 'security'>('account');
@@ -85,6 +87,16 @@ export default function Settings() {
     newPassword: '',
     confirmPassword: '',
   });
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/patient/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
   const handleAccountUpdate = async () => {
     setIsLoading(true);

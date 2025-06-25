@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface InsuranceClaim {
   id: string;
@@ -19,6 +20,7 @@ interface InsuranceClaim {
 }
 
 export default function InsuranceClaimsPage() {
+  const { user, loading, userData } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,6 +73,16 @@ export default function InsuranceClaimsPage() {
       documents: ['prescription.pdf', 'receipt.pdf'],
     },
   ]);
+
+  useEffect(() => {
+    if (!loading && (!user || userData?.role !== 'admin')) {
+      router.replace('/auth/admin/login');
+    }
+  }, [user, loading, userData, router]);
+
+  if (loading || !user || userData?.role !== 'admin') {
+    return <div>Loading...</div>;
+  }
 
   const filteredClaims = claims.filter(claim => {
     const matchesSearch = 

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Message {
   id: string;
@@ -22,6 +23,7 @@ interface Conversation {
 }
 
 export default function PatientMessages() {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showNewMessageModal, setShowNewMessageModal] = useState(false);
@@ -78,6 +80,16 @@ export default function PatientMessages() {
       isRead: true,
     },
   ]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/patient/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
   const handleSendMessage = async () => {
     setIsLoading(true);

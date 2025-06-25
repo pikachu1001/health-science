@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface FAQ {
   id: string;
@@ -18,6 +19,7 @@ interface SupportResource {
 }
 
 export default function Support() {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
@@ -78,6 +80,16 @@ export default function Support() {
       type: 'article',
     },
   ]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/patient/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
   const handleContactSubmit = async () => {
     setIsLoading(true);

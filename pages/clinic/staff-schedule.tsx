@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface StaffMember {
   id: string;
@@ -21,6 +22,7 @@ interface StaffMember {
 }
 
 export default function StaffSchedule() {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -104,6 +106,16 @@ export default function StaffSchedule() {
   const filteredStaff = staff.filter(member => 
     selectedRole === 'all' || member.role === selectedRole
   );
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/clinic/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">

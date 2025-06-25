@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import DashboardLayout from '../../components/DashboardLayout';
@@ -37,7 +37,7 @@ interface ClinicStats {
 
 export default function ClinicDashboard() {
   const router = useRouter();
-  const { user, userData } = useAuth();
+  const { user, userData, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [payingBaseFee, setPayingBaseFee] = useState(false);
   const [baseFeeError, setBaseFeeError] = useState('');
@@ -130,6 +130,16 @@ export default function ClinicDashboard() {
       setPayingBaseFee(false);
     }
   };
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/clinic/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <DashboardLayout allowedRoles={['clinic']}>

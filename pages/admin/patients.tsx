@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Patient {
   id: string;
@@ -17,6 +18,7 @@ interface Patient {
 }
 
 export default function PatientsPage() {
+  const { user, loading, userData } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,6 +66,16 @@ export default function PatientsPage() {
       registeredClinic: 'Kyoto Wellness Center',
     },
   ]);
+
+  useEffect(() => {
+    if (!loading && (!user || userData?.role !== 'admin')) {
+      router.replace('/auth/admin/login');
+    }
+  }, [user, loading, userData, router]);
+
+  if (loading || !user || userData?.role !== 'admin') {
+    return <div>Loading...</div>;
+  }
 
   const filteredPatients = patients.filter(patient => {
     const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

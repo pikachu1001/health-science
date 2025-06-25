@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface InventoryItem {
   id: string;
@@ -15,6 +16,7 @@ interface InventoryItem {
 }
 
 export default function Inventory() {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -63,6 +65,16 @@ export default function Inventory() {
     const stockMatch = !showLowStock || item.quantity <= item.minimumStock;
     return categoryMatch && stockMatch;
   });
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/clinic/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">

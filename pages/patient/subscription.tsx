@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/DashboardLayout';
 import { plans, Plan } from '../../lib/plans';
@@ -7,9 +7,19 @@ import { FaCheckCircle } from 'react-icons/fa';
 
 export default function SubscriptionPage() {
   const router = useRouter();
-  const { user, userData } = useAuth();
+  const { user, userData, loading } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/patient/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
   const handleSelectPlan = (plan: Plan) => {
     if (!user || userData?.role !== 'patient') {

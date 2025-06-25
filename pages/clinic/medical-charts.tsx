@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface VitalSigns {
   date: string;
@@ -24,6 +25,7 @@ interface Patient {
 }
 
 export default function MedicalCharts() {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
@@ -81,6 +83,16 @@ export default function MedicalCharts() {
   ]);
 
   const selectedPatientData = patients.find(p => p.name === selectedPatient);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/clinic/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">

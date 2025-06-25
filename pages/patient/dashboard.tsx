@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import DashboardLayout from '../../components/DashboardLayout';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarItem {
   name: string;
@@ -112,11 +113,22 @@ const navigation = [
 ];
 
 export default function PatientDashboard() {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState<HealthMetric>({
     status: 'active',
   });
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/patient/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
   const handleLogout = () => {
     // TODO: Implement actual logout logic

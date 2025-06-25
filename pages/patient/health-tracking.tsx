@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface VitalSign {
   id: string;
@@ -30,9 +31,9 @@ interface Medication {
 }
 
 export default function HealthTracking() {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'vitals' | 'symptoms' | 'medications'>('vitals');
-  const [isLoading, setIsLoading] = useState(false);
 
   const [vitalSigns] = useState<VitalSign[]>([
     {
@@ -95,6 +96,16 @@ export default function HealthTracking() {
       lastTaken: '2024-03-15 09:00',
     },
   ]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/patient/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
   const handleAddVitalSign = () => {
     // TODO: Implement add vital sign functionality

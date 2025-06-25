@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SubscriptionPlan {
   id: string;
@@ -17,6 +18,7 @@ interface SubscriptionPlan {
 }
 
 export default function SubscriptionsPage() {
+  const { user, loading, userData } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -81,6 +83,16 @@ export default function SubscriptionsPage() {
       maxLabTests: 4,
     },
   ]);
+
+  useEffect(() => {
+    if (!loading && (!user || userData?.role !== 'admin')) {
+      router.replace('/auth/admin/login');
+    }
+  }, [user, loading, userData, router]);
+
+  if (loading || !user || userData?.role !== 'admin') {
+    return <div>Loading...</div>;
+  }
 
   const filteredPlans = plans.filter(plan => {
     const matchesSearch = plan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SystemSetting {
   id: string;
@@ -13,6 +14,7 @@ interface SystemSetting {
 }
 
 export default function SettingsPage() {
+  const { user, loading, userData } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
@@ -173,6 +175,16 @@ export default function SettingsPage() {
         return null;
     }
   };
+
+  useEffect(() => {
+    if (!loading && (!user || userData?.role !== 'admin')) {
+      router.replace('/auth/admin/login');
+    }
+  }, [user, loading, userData, router]);
+
+  if (loading || !user || userData?.role !== 'admin') {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
