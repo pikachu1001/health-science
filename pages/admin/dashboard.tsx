@@ -148,18 +148,16 @@ export default function AdminDashboard() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                      router.pathname === item.href
+                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${router.pathname === item.href
                         ? 'bg-gray-100 text-gray-900'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
+                      }`}
                   >
                     <svg
-                      className={`mr-3 h-6 w-6 ${
-                        router.pathname === item.href
+                      className={`mr-3 h-6 w-6 ${router.pathname === item.href
                           ? 'text-gray-500'
                           : 'text-gray-400 group-hover:text-gray-500'
-                      }`}
+                        }`}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -268,19 +266,17 @@ export default function AdminDashboard() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{clinic.name}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.location}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              clinic.status === 'active' ? 'bg-green-100 text-green-800' :
-                              clinic.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clinic.status === 'active' ? 'bg-green-100 text-green-800' :
+                                clinic.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-red-100 text-red-800'
+                              }`}>
                               {clinic.status.charAt(0).toUpperCase() + clinic.status.slice(1)}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.patientCount}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              clinic.subscriptionStatus === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                            }`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clinic.subscriptionStatus === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                              }`}>
                               {clinic.subscriptionStatus.charAt(0).toUpperCase() + clinic.subscriptionStatus.slice(1)}
                             </span>
                           </td>

@@ -85,7 +85,7 @@ export default function InsuranceClaimsPage() {
   }
 
   const filteredClaims = claims.filter(claim => {
-    const matchesSearch = 
+    const matchesSearch =
       claim.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       claim.clinicName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       claim.insuranceProvider.toLowerCase().includes(searchTerm.toLowerCase());
@@ -152,18 +152,16 @@ export default function InsuranceClaimsPage() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    router.pathname === item.href
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${router.pathname === item.href
+                    ? 'bg-gray-100 text-gray-900'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
                 >
                   <svg
-                    className={`mr-3 h-6 w-6 ${
-                      router.pathname === item.href
-                        ? 'text-gray-500'
-                        : 'text-gray-400 group-hover:text-gray-500'
-                    }`}
+                    className={`mr-3 h-6 w-6 ${router.pathname === item.href
+                      ? 'text-gray-500'
+                      : 'text-gray-400 group-hover:text-gray-500'
+                      }`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -299,13 +297,13 @@ export default function InsuranceClaimsPage() {
                         {claim.status === 'pending' && (
                           <>
                             <button
-                              onClick={() => {/* TODO: Implement approve claim */}}
+                              onClick={() => {/* TODO: Implement approve claim */ }}
                               className="text-green-600 hover:text-green-900 mr-4"
                             >
                               Approve
                             </button>
                             <button
-                              onClick={() => {/* TODO: Implement reject claim */}}
+                              onClick={() => {/* TODO: Implement reject claim */ }}
                               className="text-red-600 hover:text-red-900"
                             >
                               Reject

@@ -38,8 +38,8 @@ export default function SubscriptionPage() {
       const res = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          priceId: selectedPlan.priceId, 
+        body: JSON.stringify({
+          priceId: selectedPlan.priceId,
           email: userData.email,
           userId: user.uid
         }),
@@ -74,9 +74,8 @@ export default function SubscriptionPage() {
             {plans.map((plan) => (
               <div
                 key={plan.id}
-                className={`relative p-8 bg-white border rounded-2xl shadow-sm flex flex-col transition-transform transform hover:scale-105 cursor-pointer ${
-                  selectedPlan?.id === plan.id ? 'border-blue-500 border-2' : 'border-gray-200'
-                }`}
+                className={`relative p-8 bg-white border rounded-2xl shadow-sm flex flex-col transition-transform transform hover:scale-105 cursor-pointer ${selectedPlan?.id === plan.id ? 'border-blue-500 border-2' : 'border-gray-200'
+                  }`}
                 onClick={() => handleSelectPlan(plan)}
               >
                 {selectedPlan?.id === plan.id && (

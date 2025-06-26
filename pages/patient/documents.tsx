@@ -112,51 +112,46 @@ export default function Documents() {
           <div className="flex space-x-4">
             <button
               onClick={() => setSelectedCategory('all')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                selectedCategory === 'all'
+              className={`px-4 py-2 rounded-md text-sm font-medium ${selectedCategory === 'all'
                   ? 'bg-blue-100 text-blue-700'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               全て
             </button>
             <button
               onClick={() => setSelectedCategory('medical')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                selectedCategory === 'medical'
+              className={`px-4 py-2 rounded-md text-sm font-medium ${selectedCategory === 'medical'
                   ? 'bg-blue-100 text-blue-700'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               医療
             </button>
             <button
               onClick={() => setSelectedCategory('insurance')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                selectedCategory === 'insurance'
+              className={`px-4 py-2 rounded-md text-sm font-medium ${selectedCategory === 'insurance'
                   ? 'bg-blue-100 text-blue-700'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               保険
             </button>
             <button
               onClick={() => setSelectedCategory('prescription')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                selectedCategory === 'prescription'
+              className={`px-4 py-2 rounded-md text-sm font-medium ${selectedCategory === 'prescription'
                   ? 'bg-blue-100 text-blue-700'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               処方箋
             </button>
             <button
               onClick={() => setSelectedCategory('other')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                selectedCategory === 'other'
+              className={`px-4 py-2 rounded-md text-sm font-medium ${selectedCategory === 'other'
                   ? 'bg-blue-100 text-blue-700'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               その他
             </button>
@@ -190,13 +185,12 @@ export default function Documents() {
                     </div>
                     <div className="flex items-center space-x-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          document.status === 'verified'
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${document.status === 'verified'
                             ? 'bg-green-100 text-green-800'
                             : document.status === 'processing'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
                       >
                         {document.status === 'verified' ? '確認済み' : document.status === 'processing' ? '処理中' : 'アップロード済み'}
                       </span>

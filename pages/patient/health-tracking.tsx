@@ -143,31 +143,28 @@ export default function HealthTracking() {
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('vitals')}
-              className={`${
-                activeTab === 'vitals'
+              className={`${activeTab === 'vitals'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
               バイタルサイン
             </button>
             <button
               onClick={() => setActiveTab('symptoms')}
-              className={`${
-                activeTab === 'symptoms'
+              className={`${activeTab === 'symptoms'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
               症状
             </button>
             <button
               onClick={() => setActiveTab('medications')}
-              className={`${
-                activeTab === 'medications'
+              className={`${activeTab === 'medications'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
               服薬
             </button>
@@ -231,13 +228,12 @@ export default function HealthTracking() {
                           <div className="flex items-center">
                             <p className="text-sm font-medium text-blue-600 truncate">{symptom.description}</p>
                             <span
-                              className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                symptom.severity === 'mild'
+                              className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${symptom.severity === 'mild'
                                   ? 'bg-green-100 text-green-800'
                                   : symptom.severity === 'moderate'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}
                             >
                               {symptom.severity === 'mild' ? '軽度' : symptom.severity === 'moderate' ? '中等度' : '重度'}
                             </span>
@@ -277,13 +273,12 @@ export default function HealthTracking() {
                           <div className="flex items-center">
                             <p className="text-sm font-medium text-blue-600 truncate">{medication.name}</p>
                             <span
-                              className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                medication.status === 'active'
+                              className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${medication.status === 'active'
                                   ? 'bg-green-100 text-green-800'
                                   : medication.status === 'completed'
-                                  ? 'bg-gray-100 text-gray-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}
+                                    ? 'bg-gray-100 text-gray-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}
                             >
                               {medication.status === 'active' ? '服用中' : medication.status === 'completed' ? '完了' : '飲み忘れ'}
                             </span>

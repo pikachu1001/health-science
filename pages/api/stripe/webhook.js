@@ -23,11 +23,11 @@ const handleCheckoutCompleted = async (session) => {
     if (type === 'clinic_base_fee') {
         // Update the clinic's baseFeeStatus and store Stripe Customer ID in Firestore
         const clinicRef = adminDb.collection('clinics').doc(userId);
-        await clinicRef.update({ 
-            baseFeeStatus: 'active', 
-            baseFeeStripeSubscriptionId: stripeSubscriptionId, 
+        await clinicRef.update({
+            baseFeeStatus: 'active',
+            baseFeeStripeSubscriptionId: stripeSubscriptionId,
             baseFeeStripeCustomerId: session.customer,
-            baseFeeUpdatedAt: new Date() 
+            baseFeeUpdatedAt: new Date()
         });
         // Add activity feed entry
         const activityRef = adminDb.collection('activity_feed').doc();

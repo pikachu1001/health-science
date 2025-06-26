@@ -92,7 +92,7 @@ export default function Inventory() {
             </div>
             <div>
               <button
-                onClick={() => {/* TODO: Implement add item modal */}}
+                onClick={() => {/* TODO: Implement add item modal */ }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Add Item
@@ -159,9 +159,8 @@ export default function Inventory() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      item.quantity <= item.minimumStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                    }`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.quantity <= item.minimumStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                      }`}>
                       {item.quantity} {item.unit}
                     </span>
                   </td>
@@ -171,13 +170,13 @@ export default function Inventory() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">¥{item.price.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => {/* TODO: Implement edit item */}}
+                      onClick={() => {/* TODO: Implement edit item */ }}
                       className="text-blue-600 hover:text-blue-900 mr-4"
                     >
                       編集
                     </button>
                     <button
-                      onClick={() => {/* TODO: Implement restock item */}}
+                      onClick={() => {/* TODO: Implement restock item */ }}
                       className="text-green-600 hover:text-green-900"
                     >
                       補充

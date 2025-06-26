@@ -103,7 +103,7 @@ export default function StaffSchedule() {
 
   const roles = ['all', ...Array.from(new Set(staff.map(member => member.role)))];
 
-  const filteredStaff = staff.filter(member => 
+  const filteredStaff = staff.filter(member =>
     selectedRole === 'all' || member.role === selectedRole
   );
 
@@ -133,7 +133,7 @@ export default function StaffSchedule() {
             </div>
             <div>
               <button
-                onClick={() => {/* TODO: Implement add schedule modal */}}
+                onClick={() => {/* TODO: Implement add schedule modal */ }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Add Schedule
@@ -203,9 +203,9 @@ export default function StaffSchedule() {
                       <div className="text-xs text-gray-400">{member.specialties.join(', ')}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {daySchedule?.status === 'scheduled' 
+                      {daySchedule?.status === 'scheduled'
                         ? `${daySchedule.startTime} - ${daySchedule.endTime}`
-                        : daySchedule?.status === 'on-leave' 
+                        : daySchedule?.status === 'on-leave'
                           ? '休暇中'
                           : '休み'
                       }
@@ -221,23 +221,22 @@ export default function StaffSchedule() {
                       ))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        daySchedule?.status === 'scheduled' ? 'bg-green-100 text-green-800' :
-                        daySchedule?.status === 'on-leave' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${daySchedule?.status === 'scheduled' ? 'bg-green-100 text-green-800' :
+                          daySchedule?.status === 'on-leave' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                        }`}>
                         {daySchedule?.status || 'Not Scheduled'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
-                        onClick={() => {/* TODO: Implement edit schedule */}}
+                        onClick={() => {/* TODO: Implement edit schedule */ }}
                         className="text-blue-600 hover:text-blue-900 mr-4"
                       >
                         編集
                       </button>
                       <button
-                        onClick={() => {/* TODO: Implement view full schedule */}}
+                        onClick={() => {/* TODO: Implement view full schedule */ }}
                         className="text-green-600 hover:text-green-900"
                       >
                         全スケジュールを見る

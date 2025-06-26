@@ -183,31 +183,28 @@ export default function Settings() {
             <nav className="-mb-px flex">
               <button
                 onClick={() => setActiveTab('account')}
-                className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm ${
-                  activeTab === 'account'
+                className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm ${activeTab === 'account'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 アカウント
               </button>
               <button
                 onClick={() => setActiveTab('notifications')}
-                className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm ${
-                  activeTab === 'notifications'
+                className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm ${activeTab === 'notifications'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 通知
               </button>
               <button
                 onClick={() => setActiveTab('security')}
-                className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm ${
-                  activeTab === 'security'
+                className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm ${activeTab === 'security'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 セキュリティ
               </button>
@@ -315,9 +312,8 @@ export default function Settings() {
                   <button
                     onClick={handleAccountUpdate}
                     disabled={isLoading}
-                    className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                   >
                     {isLoading ? '保存中...' : '変更を保存'}
                   </button>
@@ -338,14 +334,12 @@ export default function Settings() {
                     </div>
                     <button
                       onClick={() => handleNotificationToggle(setting.id)}
-                      className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                        setting.enabled ? 'bg-blue-600' : 'bg-gray-200'
-                      }`}
+                      className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${setting.enabled ? 'bg-blue-600' : 'bg-gray-200'
+                        }`}
                     >
                       <span
-                        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
-                          setting.enabled ? 'translate-x-5' : 'translate-x-0'
-                        }`}
+                        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${setting.enabled ? 'translate-x-5' : 'translate-x-0'
+                          }`}
                       />
                     </button>
                   </div>
@@ -366,14 +360,12 @@ export default function Settings() {
                     </div>
                     <button
                       onClick={() => handleSecurityToggle(setting.id)}
-                      className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                        setting.enabled ? 'bg-blue-600' : 'bg-gray-200'
-                      }`}
+                      className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${setting.enabled ? 'bg-blue-600' : 'bg-gray-200'
+                        }`}
                     >
                       <span
-                        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
-                          setting.enabled ? 'translate-x-5' : 'translate-x-0'
-                        }`}
+                        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${setting.enabled ? 'translate-x-5' : 'translate-x-0'
+                          }`}
                       />
                     </button>
                   </div>
@@ -454,11 +446,10 @@ export default function Settings() {
                   type="button"
                   onClick={handlePasswordChange}
                   disabled={isLoading || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword}
-                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm ${
-                    isLoading || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword
+                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm ${isLoading || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword
                       ? 'opacity-50 cursor-not-allowed'
                       : ''
-                  }`}
+                    }`}
                 >
                   {isLoading ? '変更中...' : 'パスワードを変更'}
                 </button>
@@ -504,9 +495,8 @@ export default function Settings() {
                   type="button"
                   onClick={handleAccountDelete}
                   disabled={isLoading}
-                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:col-start-2 sm:text-sm ${
-                    isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:col-start-2 sm:text-sm ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                 >
                   {isLoading ? '削除中...' : 'アカウントを削除'}
                 </button>

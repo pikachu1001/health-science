@@ -17,8 +17,8 @@ export default function Home() {
               <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">ヘルスサポートシステム</h1>
             </div>
             <div>
-              <Link 
-                href="/auth/admin/login" 
+              <Link
+                href="/auth/admin/login"
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 shadow-md"
               >
                 <FaUserMd className="mr-2" /> 管理者ログイン

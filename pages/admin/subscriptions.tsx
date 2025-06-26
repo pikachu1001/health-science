@@ -96,7 +96,7 @@ export default function SubscriptionsPage() {
 
   const filteredPlans = plans.filter(plan => {
     const matchesSearch = plan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         plan.description.toLowerCase().includes(searchTerm.toLowerCase());
+      plan.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || plan.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -144,18 +144,16 @@ export default function SubscriptionsPage() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    router.pathname === item.href
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${router.pathname === item.href
                       ? 'bg-gray-100 text-gray-900'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   <svg
-                    className={`mr-3 h-6 w-6 ${
-                      router.pathname === item.href
+                    className={`mr-3 h-6 w-6 ${router.pathname === item.href
                         ? 'text-gray-500'
                         : 'text-gray-400 group-hover:text-gray-500'
-                    }`}
+                      }`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -219,16 +217,15 @@ export default function SubscriptionsPage() {
                   <div className="p-6">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-medium text-gray-900">{plan.name}</h3>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        plan.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${plan.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
                         {plan.status === 'active' ? '有効' : '無効'}
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-gray-500">{plan.description}</p>
                     <p className="mt-4 text-3xl font-bold text-gray-900">¥{plan.price.toLocaleString()}</p>
                     <p className="mt-1 text-sm text-gray-500">{plan.billingCycle === 'monthly' ? '月額' : '年額'}</p>
-                    
+
                     <div className="mt-6">
                       <h4 className="text-sm font-medium text-gray-900">サービス上限</h4>
                       <dl className="mt-2 grid grid-cols-1 gap-2">

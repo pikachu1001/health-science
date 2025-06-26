@@ -129,7 +129,7 @@ export default function SettingsPage() {
           <input
             type="text"
             value={setting.value as string}
-            onChange={() => {/* TODO: Implement setting update */}}
+            onChange={() => {/* TODO: Implement setting update */ }}
             className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
           />
         );
@@ -138,22 +138,20 @@ export default function SettingsPage() {
           <input
             type="number"
             value={setting.value as number}
-            onChange={() => {/* TODO: Implement setting update */}}
+            onChange={() => {/* TODO: Implement setting update */ }}
             className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
           />
         );
       case 'boolean':
         return (
           <button
-            onClick={() => {/* TODO: Implement setting update */}}
-            className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-              setting.value ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
+            onClick={() => {/* TODO: Implement setting update */ }}
+            className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${setting.value ? 'bg-blue-600' : 'bg-gray-200'
+              }`}
           >
             <span
-              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
-                setting.value ? 'translate-x-5' : 'translate-x-0'
-              }`}
+              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${setting.value ? 'translate-x-5' : 'translate-x-0'
+                }`}
             />
           </button>
         );
@@ -161,7 +159,7 @@ export default function SettingsPage() {
         return (
           <select
             value={setting.value as string}
-            onChange={() => {/* TODO: Implement setting update */}}
+            onChange={() => {/* TODO: Implement setting update */ }}
             className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
           >
             {setting.options?.map((option) => (
@@ -220,18 +218,16 @@ export default function SettingsPage() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    router.pathname === item.href
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${router.pathname === item.href
+                    ? 'bg-gray-100 text-gray-900'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
                 >
                   <svg
-                    className={`mr-3 h-6 w-6 ${
-                      router.pathname === item.href
-                        ? 'text-gray-500'
-                        : 'text-gray-400 group-hover:text-gray-500'
-                    }`}
+                    className={`mr-3 h-6 w-6 ${router.pathname === item.href
+                      ? 'text-gray-500'
+                      : 'text-gray-400 group-hover:text-gray-500'
+                      }`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -255,11 +251,10 @@ export default function SettingsPage() {
                   <button
                     key={category.id}
                     onClick={() => setActiveTab(category.id)}
-                    className={`${
-                      activeTab === category.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                    className={`${activeTab === category.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
                   >
                     {category.name}
                   </button>
@@ -289,7 +284,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
                   <button
-                    onClick={() => {/* TODO: Implement save settings */}}
+                    onClick={() => {/* TODO: Implement save settings */ }}
                     className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
                     Save Changes

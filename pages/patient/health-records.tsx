@@ -138,31 +138,28 @@ export default function PatientHealthRecords() {
             <nav className="-mb-px flex space-x-8" aria-label="Tabs">
               <button
                 onClick={() => setActiveTab('records')}
-                className={`${
-                  activeTab === 'records'
+                className={`${activeTab === 'records'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 医療記録
               </button>
               <button
                 onClick={() => setActiveTab('prescriptions')}
-                className={`${
-                  activeTab === 'prescriptions'
+                className={`${activeTab === 'prescriptions'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 処方箋
               </button>
               <button
                 onClick={() => setActiveTab('tests')}
-                className={`${
-                  activeTab === 'tests'
+                className={`${activeTab === 'tests'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 検査結果
               </button>
@@ -233,13 +230,12 @@ export default function PatientHealthRecords() {
                             <p className="text-sm font-medium text-blue-600 truncate">{prescription.medication}</p>
                             <div className="ml-2 flex-shrink-0 flex">
                               <p
-                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  prescription.status === 'active'
+                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${prescription.status === 'active'
                                     ? 'bg-green-100 text-green-800'
                                     : prescription.status === 'completed'
-                                    ? 'bg-gray-100 text-gray-800'
-                                    : 'bg-red-100 text-red-800'
-                                }`}
+                                      ? 'bg-gray-100 text-gray-800'
+                                      : 'bg-red-100 text-red-800'
+                                  }`}
                               >
                                 {prescription.status === 'active' ? '有効' : prescription.status === 'completed' ? '完了' : 'キャンセル'}
                               </p>
@@ -280,13 +276,12 @@ export default function PatientHealthRecords() {
                             <p className="text-sm font-medium text-blue-600 truncate">{test.testName}</p>
                             <div className="ml-2 flex-shrink-0 flex">
                               <p
-                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  test.status === 'normal'
+                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${test.status === 'normal'
                                     ? 'bg-green-100 text-green-800'
                                     : test.status === 'abnormal'
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-yellow-100 text-yellow-800'
-                                }`}
+                                      ? 'bg-red-100 text-red-800'
+                                      : 'bg-yellow-100 text-yellow-800'
+                                  }`}
                               >
                                 {test.status === 'normal' ? '正常' : test.status === 'abnormal' ? '異常' : '保留中'}
                               </p>

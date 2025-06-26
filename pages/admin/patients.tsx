@@ -79,7 +79,7 @@ export default function PatientsPage() {
 
   const filteredPatients = patients.filter(patient => {
     const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         patient.email.toLowerCase().includes(searchTerm.toLowerCase());
+      patient.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || patient.status === statusFilter;
     const matchesPlan = planFilter === 'all' || patient.subscriptionPlan === planFilter;
     return matchesSearch && matchesStatus && matchesPlan;
@@ -128,18 +128,16 @@ export default function PatientsPage() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    router.pathname === item.href
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${router.pathname === item.href
                       ? 'bg-gray-100 text-gray-900'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   <svg
-                    className={`mr-3 h-6 w-6 ${
-                      router.pathname === item.href
+                    className={`mr-3 h-6 w-6 ${router.pathname === item.href
                         ? 'text-gray-500'
                         : 'text-gray-400 group-hover:text-gray-500'
-                    }`}
+                      }`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -239,9 +237,8 @@ export default function PatientsPage() {
                         {patient.insuranceProvider}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          patient.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${patient.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
                           {patient.status === 'active' ? '有効' : '無効'}
                         </span>
                       </td>

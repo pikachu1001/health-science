@@ -147,9 +147,8 @@ export default function PatientMessages() {
                         <li
                           key={conversation.id}
                           onClick={() => setSelectedConversation(conversation.id)}
-                          className={`cursor-pointer hover:bg-gray-50 ${
-                            selectedConversation === conversation.id ? 'bg-blue-50' : ''
-                          }`}
+                          className={`cursor-pointer hover:bg-gray-50 ${selectedConversation === conversation.id ? 'bg-blue-50' : ''
+                            }`}
                         >
                           <div className="px-4 py-4 sm:px-6">
                             <div className="flex items-center justify-between">
@@ -199,11 +198,10 @@ export default function PatientMessages() {
                                 className={`flex ${message.sender === 'You' ? 'justify-end' : 'justify-start'}`}
                               >
                                 <div
-                                  className={`max-w-lg rounded-lg px-4 py-2 ${
-                                    message.sender === 'You'
+                                  className={`max-w-lg rounded-lg px-4 py-2 ${message.sender === 'You'
                                       ? 'bg-blue-600 text-white'
                                       : 'bg-gray-100 text-gray-900'
-                                  }`}
+                                    }`}
                                 >
                                   <div className="flex items-center justify-between mb-1">
                                     <p className="text-sm font-medium">{message.sender}</p>
@@ -312,11 +310,10 @@ export default function PatientMessages() {
                   type="button"
                   onClick={handleSendMessage}
                   disabled={isLoading || !newMessage.recipient || !newMessage.subject || !newMessage.content}
-                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm ${
-                    isLoading || !newMessage.recipient || !newMessage.subject || !newMessage.content
+                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm ${isLoading || !newMessage.recipient || !newMessage.subject || !newMessage.content
                       ? 'opacity-50 cursor-not-allowed'
                       : ''
-                  }`}
+                    }`}
                 >
                   {isLoading ? '送信中...' : 'メッセージを送信'}
                 </button>

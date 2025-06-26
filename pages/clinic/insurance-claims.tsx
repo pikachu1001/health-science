@@ -71,7 +71,7 @@ export default function InsuranceClaims() {
     return <div>Loading...</div>;
   }
 
-  const filteredClaims = claims.filter(claim => 
+  const filteredClaims = claims.filter(claim =>
     selectedStatus === 'all' || claim.status === selectedStatus
   );
 
@@ -91,7 +91,7 @@ export default function InsuranceClaims() {
             </div>
             <div>
               <button
-                onClick={() => {/* TODO: Implement new claim modal */}}
+                onClick={() => {/* TODO: Implement new claim modal */ }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 New Claim
@@ -157,25 +157,24 @@ export default function InsuranceClaims() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">¥{claim.amount.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">¥{claim.amount.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      claim.status === 'approved' ? 'bg-green-100 text-green-800' :
-                      claim.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      claim.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${claim.status === 'approved' ? 'bg-green-100 text-green-800' :
+                        claim.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          claim.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                            'bg-blue-100 text-blue-800'
+                      }`}>
                       {claim.status === 'approved' ? '承認済み' : claim.status === 'pending' ? '審査中' : claim.status === 'rejected' ? '却下' : claim.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{claim.submissionDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => {/* TODO: Implement view claim details */}}
+                      onClick={() => {/* TODO: Implement view claim details */ }}
                       className="text-blue-600 hover:text-blue-900 mr-4"
                     >
                       View
                     </button>
                     <button
-                      onClick={() => {/* TODO: Implement update claim status */}}
+                      onClick={() => {/* TODO: Implement update claim status */ }}
                       className="text-green-600 hover:text-green-900"
                     >
                       Update

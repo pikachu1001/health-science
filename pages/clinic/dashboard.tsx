@@ -197,18 +197,16 @@ export default function ClinicDashboard() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                      router.pathname === item.href
+                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${router.pathname === item.href
                         ? 'bg-gray-100 text-gray-900'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
+                      }`}
                   >
                     <svg
-                      className={`mr-3 h-6 w-6 ${
-                        router.pathname === item.href
+                      className={`mr-3 h-6 w-6 ${router.pathname === item.href
                           ? 'text-gray-500'
                           : 'text-gray-400 group-hover:text-gray-500'
-                      }`}
+                        }`}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -301,11 +299,10 @@ export default function ClinicDashboard() {
                             <p className="ml-2 text-sm text-gray-500">{appointment.time}</p>
                           </div>
                           <div className="flex items-center">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              appointment.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                              appointment.status === 'completed' ? 'bg-green-100 text-green-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${appointment.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                                appointment.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                  'bg-red-100 text-red-800'
+                              }`}>
                               {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                             </span>
                           </div>

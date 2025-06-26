@@ -184,51 +184,46 @@ export default function Support() {
             <div className="mt-4 flex space-x-4">
               <button
                 onClick={() => setSelectedCategory('all')}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
-                  selectedCategory === 'all'
+                className={`px-4 py-2 rounded-md text-sm font-medium ${selectedCategory === 'all'
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 全て
               </button>
               <button
                 onClick={() => setSelectedCategory('general')}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
-                  selectedCategory === 'general'
+                className={`px-4 py-2 rounded-md text-sm font-medium ${selectedCategory === 'general'
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 一般
               </button>
               <button
                 onClick={() => setSelectedCategory('technical')}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
-                  selectedCategory === 'technical'
+                className={`px-4 py-2 rounded-md text-sm font-medium ${selectedCategory === 'technical'
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 技術
               </button>
               <button
                 onClick={() => setSelectedCategory('billing')}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
-                  selectedCategory === 'billing'
+                className={`px-4 py-2 rounded-md text-sm font-medium ${selectedCategory === 'billing'
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 請求
               </button>
               <button
                 onClick={() => setSelectedCategory('privacy')}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
-                  selectedCategory === 'privacy'
+                className={`px-4 py-2 rounded-md text-sm font-medium ${selectedCategory === 'privacy'
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 プライバシー
               </button>
@@ -367,11 +362,10 @@ export default function Support() {
                   type="button"
                   onClick={handleContactSubmit}
                   disabled={isLoading || !contactForm.subject || !contactForm.message}
-                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm ${
-                    isLoading || !contactForm.subject || !contactForm.message
+                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm ${isLoading || !contactForm.subject || !contactForm.message
                       ? 'opacity-50 cursor-not-allowed'
                       : ''
-                  }`}
+                    }`}
                 >
                   {isLoading ? '送信中...' : 'メッセージを送信'}
                 </button>
