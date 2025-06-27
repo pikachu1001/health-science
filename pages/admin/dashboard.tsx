@@ -103,6 +103,10 @@ export default function AdminDashboard() {
     activeSubscribers: subsLoading ? '...' : subscriptions.filter(s => s.plan === plan.id && s.status === 'active').length,
   }));
 
+  // Aggregate commission and admin revenue
+  const totalClinicCommission = subsLoading ? 0 : subscriptions.reduce((sum, s) => sum + (s.clinicCommission || 0), 0);
+  const totalAdminRevenue = subsLoading ? 0 : subscriptions.reduce((sum, s) => sum + (s.adminRevenue || 0), 0);
+
   return (
     <DashboardLayout allowedRoles={['admin']}>
       <div className="min-h-screen bg-gray-100">
@@ -165,7 +169,7 @@ export default function AdminDashboard() {
           <div className="flex-1">
             <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
               {/* System Stats */}
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
                 <div className="bg-white overflow-hidden shadow rounded-lg">
                   <div className="p-5">
                     <div className="flex items-center">
@@ -219,6 +223,48 @@ export default function AdminDashboard() {
                           <dt className="text-sm font-medium text-gray-500 truncate">有効サブスクリプション</dt>
                           <dd className="flex items-baseline">
                             <div className="text-2xl font-semibold text-gray-900">{statsLoading ? '...' : systemStats.activeSubscriptions}</div>
+                          </dd>
+                        </dl>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* New: Total Clinic Commission */}
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="p-5">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                        </svg>
+                      </div>
+                      <div className="ml-5 w-0 flex-1">
+                        <dl>
+                          <dt className="text-sm font-medium text-gray-500 truncate">クリニック手数料合計</dt>
+                          <dd className="flex items-baseline">
+                            <div className="text-2xl font-semibold text-green-700">¥{totalClinicCommission.toLocaleString()}</div>
+                          </dd>
+                        </dl>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* New: Total Admin Revenue */}
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="p-5">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <svg className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="ml-5 w-0 flex-1">
+                        <dl>
+                          <dt className="text-sm font-medium text-gray-500 truncate">管理者収益合計</dt>
+                          <dd className="flex items-baseline">
+                            <div className="text-2xl font-semibold text-blue-700">¥{totalAdminRevenue.toLocaleString()}</div>
                           </dd>
                         </dl>
                       </div>

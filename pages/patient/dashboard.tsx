@@ -182,13 +182,13 @@ export default function PatientDashboard() {
                     className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${router.pathname === item.href
                         ? 'bg-blue-100 text-blue-600'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      }`}
+                    }`}
                   >
                     <item.icon
                       className={`mr-3 h-6 w-6 ${router.pathname === item.href
                           ? 'text-blue-600'
                           : 'text-gray-400 group-hover:text-gray-500'
-                        }`}
+                      }`}
                     />
                     {item.name}
                   </Link>

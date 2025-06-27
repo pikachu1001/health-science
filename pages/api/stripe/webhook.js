@@ -56,12 +56,16 @@ const handleCheckoutCompleted = async (session) => {
         return;
     }
 
+    // Fetch patient document to get clinicId
+    const patientSnap = await adminDb.collection('patients').doc(userId).get();
+    const clinicId = patientSnap.exists ? patientSnap.data().clinicId : null;
+
     // Create the subscription document in Firestore
     const subscriptionRef = adminDb.collection('subscriptions').doc();
     const subscriptionData = {
         subscriptionId: subscriptionRef.id,
         patientId: userId,
-        clinicId: 'temp_clinic_id', // TODO: Assign a clinic ID during patient registration
+        clinicId: clinicId || 'unknown',
         plan: plan.id,
         stripeSubscriptionId,
         stripeCustomerId: session.customer,
@@ -80,7 +84,7 @@ const handleCheckoutCompleted = async (session) => {
         activityId: activityRef.id,
         type: 'new_signup',
         userId: userId,
-        clinicId: 'temp_clinic_id', // Match the subscription's clinicId
+        clinicId: clinicId || 'unknown',
         message: `新しい患者が${plan.name}に登録しました。`,
         timestamp: new Date(),
         details: {

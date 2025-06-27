@@ -7,7 +7,8 @@ import {
   useClinicAppointments, 
   useClinicPatients, 
   useClinicDashboardStats, 
-  useClinicActivityLog
+  useClinicActivityLog,
+  useSubscriptionStatus
 } from '../../lib/real-time-hooks';
 
 export default function ClinicDashboard() {
@@ -22,6 +23,7 @@ export default function ClinicDashboard() {
   const { patients, loading: patientsLoading } = useClinicPatients(clinicId, 5);
   const { stats, loading: statsLoading } = useClinicDashboardStats(clinicId);
   const { activities, loading: activitiesLoading } = useClinicActivityLog(clinicId, 10);
+  const { subscriptions, loading: subsLoading } = useSubscriptionStatus(clinicId);
 
   const navigationItems = [
     { name: 'ダッシュボード', href: '/clinic/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -74,6 +76,9 @@ export default function ClinicDashboard() {
       currency: 'JPY',
     }).format(amount);
   };
+
+  // Aggregate commission for this clinic
+  const totalClinicCommission = subsLoading ? 0 : subscriptions.reduce((sum, s) => sum + (s.clinicCommission || 0), 0);
 
   return (
     <DashboardLayout allowedRoles={['clinic']}>
@@ -160,7 +165,7 @@ export default function ClinicDashboard() {
           {/* Main Content */}
           <div className="flex-1 p-6">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
               {/* Total Patients */}
               <div className="bg-white overflow-hidden shadow rounded-lg">
                 <div className="p-5">
@@ -246,6 +251,27 @@ export default function ClinicDashboard() {
                           <div className="text-2xl font-semibold text-gray-900">
                             {statsLoading ? '...' : formatCurrency(stats.revenueThisMonth)}
                           </div>
+                        </dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Total Clinic Commission */}
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                      </svg>
+                    </div>
+                    <div className="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt className="text-sm font-medium text-gray-500 truncate">手数料合計</dt>
+                        <dd className="flex items-baseline">
+                          <div className="text-2xl font-semibold text-green-700">¥{totalClinicCommission.toLocaleString()}</div>
                         </dd>
                       </dl>
                     </div>
