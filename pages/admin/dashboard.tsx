@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSystemStats, useAllClinics, useActivityFeed, useSubscriptionStatus } from '../../lib/real-time-hooks';
 
 interface SystemStats {
   totalClinics: number;
@@ -37,35 +38,14 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const [systemStats] = useState<SystemStats>({
-    totalClinics: 25,
-    totalPatients: 1500,
-    activeSubscriptions: 1200,
-    totalRevenue: 5000000,
-    pendingInsuranceClaims: 45,
-    systemHealth: 'healthy',
-  });
-
-  const [clinics] = useState<Clinic[]>([
-    {
-      id: '1',
-      name: 'Tokyo Medical Center',
-      status: 'active',
-      location: 'Tokyo, Japan',
-      specialties: ['General Medicine', 'Cardiology'],
-      patientCount: 250,
-      subscriptionStatus: 'active',
-    },
-    {
-      id: '2',
-      name: 'Osaka Health Clinic',
-      status: 'pending',
-      location: 'Osaka, Japan',
-      specialties: ['Pediatrics', 'Dermatology'],
-      patientCount: 180,
-      subscriptionStatus: 'active',
-    },
-  ]);
+  // Real-time system stats
+  const { stats: systemStats, loading: statsLoading, error: statsError } = useSystemStats();
+  // Real-time clinics list
+  const { clinics, loading: clinicsLoading, error: clinicsError } = useAllClinics();
+  // Real-time activity feed (latest 10)
+  const { activities, loading: activityLoading, error: activityError } = useActivityFeed(undefined, 10);
+  // Real-time subscriptions (for plan stats)
+  const { subscriptions, loading: subsLoading, error: subsError } = useSubscriptionStatus();
 
   const [subscriptionPlans] = useState<SubscriptionPlan[]>([
     {
@@ -112,6 +92,16 @@ export default function AdminDashboard() {
   if (loading || !user || userData?.role !== 'admin') {
     return <div>Loading...</div>;
   }
+
+  // Compute real-time plan stats
+  const planStats = [
+    { id: 'A', name: 'Plan A', price: 3000, features: ['Basic Health Coverage', 'Online Consultations'] },
+    { id: 'B', name: 'Plan B', price: 4000, features: ['Extended Coverage', 'Priority Appointments'] },
+    { id: 'C', name: 'Plan C', price: 5000, features: ['Premium Coverage', '24/7 Support'] },
+  ].map(plan => ({
+    ...plan,
+    activeSubscribers: subsLoading ? '...' : subscriptions.filter(s => s.plan === plan.id && s.status === 'active').length,
+  }));
 
   return (
     <DashboardLayout allowedRoles={['admin']}>
@@ -188,7 +178,7 @@ export default function AdminDashboard() {
                         <dl>
                           <dt className="text-sm font-medium text-gray-500 truncate">クリニック総数</dt>
                           <dd className="flex items-baseline">
-                            <div className="text-2xl font-semibold text-gray-900">{systemStats.totalClinics}</div>
+                            <div className="text-2xl font-semibold text-gray-900">{statsLoading ? '...' : systemStats.totalClinics}</div>
                           </dd>
                         </dl>
                       </div>
@@ -208,7 +198,7 @@ export default function AdminDashboard() {
                         <dl>
                           <dt className="text-sm font-medium text-gray-500 truncate">患者総数</dt>
                           <dd className="flex items-baseline">
-                            <div className="text-2xl font-semibold text-gray-900">{systemStats.totalPatients}</div>
+                            <div className="text-2xl font-semibold text-gray-900">{statsLoading ? '...' : systemStats.totalPatients}</div>
                           </dd>
                         </dl>
                       </div>
@@ -228,7 +218,7 @@ export default function AdminDashboard() {
                         <dl>
                           <dt className="text-sm font-medium text-gray-500 truncate">有効サブスクリプション</dt>
                           <dd className="flex items-baseline">
-                            <div className="text-2xl font-semibold text-gray-900">{systemStats.activeSubscriptions}</div>
+                            <div className="text-2xl font-semibold text-gray-900">{statsLoading ? '...' : systemStats.activeSubscriptions}</div>
                           </dd>
                         </dl>
                       </div>
@@ -253,36 +243,30 @@ export default function AdminDashboard() {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">クリニック名</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">所在地</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">メール</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">患者数</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">サブスクリプション</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">基本料金</th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {clinics.map((clinic) => (
-                        <tr key={clinic.id}>
+                      {clinicsLoading ? (
+                        <tr><td colSpan={6} className="text-center py-4">Loading...</td></tr>
+                      ) : clinics.length === 0 ? (
+                        <tr><td colSpan={6} className="text-center py-4">No clinics found.</td></tr>
+                      ) : clinics.map((clinic) => (
+                        <tr key={clinic.clinicId}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{clinic.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.location}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.email}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clinic.status === 'active' ? 'bg-green-100 text-green-800' :
-                                clinic.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-red-100 text-red-800'
-                              }`}>
-                              {clinic.status.charAt(0).toUpperCase() + clinic.status.slice(1)}
-                            </span>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clinic.baseFeeStatus === 'active' ? 'bg-green-100 text-green-800' : clinic.baseFeeStatus === 'unpaid' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{clinic.baseFeeStatus}</span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.patientCount}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clinic.subscriptionStatus === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                              }`}>
-                              {clinic.subscriptionStatus.charAt(0).toUpperCase() + clinic.subscriptionStatus.slice(1)}
-                            </span>
-                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.referredPatients ? clinic.referredPatients.length : 0}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.baseFeeStatus}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <button
-                              onClick={() => router.push(`/admin/clinics/${clinic.id}`)}
+                              onClick={() => router.push(`/admin/clinics/${clinic.clinicId}`)}
                               className="text-blue-600 hover:text-blue-900"
                             >
                               View Details
@@ -295,7 +279,30 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Subscription Plans */}
+              {/* Real-time Activity Feed */}
+              <div className="mt-8">
+                <h2 className="text-lg font-medium text-gray-900 mb-2">最新のアクティビティ</h2>
+                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                  <ul className="divide-y divide-gray-200">
+                    {activityLoading ? (
+                      <li className="py-4 text-center">Loading...</li>
+                    ) : activities.length === 0 ? (
+                      <li className="py-4 text-center">No recent activity.</li>
+                    ) : activities.map(activity => (
+                      <li key={activity.activityId} className="px-6 py-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-medium">{activity.type}</span>: {activity.message}
+                          </div>
+                          <div className="text-xs text-gray-400">{activity.timestamp?.toDate ? activity.timestamp.toDate().toLocaleString() : ''}</div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Real-time Subscription Plans */}
               <div className="mt-8">
                 <div className="flex justify-between items-center">
                   <h2 className="text-lg font-medium text-gray-900">Subscription Plans</h2>
@@ -307,13 +314,13 @@ export default function AdminDashboard() {
                   </button>
                 </div>
                 <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {subscriptionPlans.map((plan) => (
+                  {planStats.map((plan) => (
                     <div key={plan.id} className="bg-white overflow-hidden shadow rounded-lg">
                       <div className="p-5">
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-medium text-gray-900">{plan.name}</h3>
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            {plan.status}
+                            active
                           </span>
                         </div>
                         <p className="mt-2 text-3xl font-bold text-gray-900">¥{plan.price.toLocaleString()}</p>

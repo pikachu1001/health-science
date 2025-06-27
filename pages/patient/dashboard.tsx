@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
+import { usePatientAppointments, usePatientHealthRecords, usePatientMessages } from '../../lib/real-time-hooks';
 
 interface SidebarItem {
   name: string;
@@ -119,6 +120,11 @@ export default function PatientDashboard() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<HealthMetric>({
     status: 'active',
   });
+
+  const patientId = user?.uid || '';
+  const { appointments, loading: appointmentsLoading } = usePatientAppointments(patientId, 5);
+  const { records: healthRecords, loading: healthRecordsLoading } = usePatientHealthRecords(patientId, 5);
+  const { messages, loading: messagesLoading } = usePatientMessages(patientId, 5);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -286,6 +292,89 @@ export default function PatientDashboard() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Detailed Real-Time Lists */}
+              <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* Appointments List */}
+                <div className="bg-white shadow rounded-lg p-6">
+                  <div className="flex items-center mb-2">
+                    <span className="flex items-center mr-2">
+                      <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse mr-1"></span>
+                      <span className="text-xs text-green-700">ライブ更新中</span>
+                    </span>
+                    <span className="font-semibold">今後の予約</span>
+                  </div>
+                  {appointmentsLoading ? (
+                    <div className="text-gray-400 py-4">Loading...</div>
+                  ) : appointments.length === 0 ? (
+                    <div className="text-gray-400 py-4">予約はありません。</div>
+                  ) : (
+                    <ul className="divide-y divide-gray-100">
+                      {appointments.map((appt: any) => (
+                        <li key={appt.id} className="py-2">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="font-medium text-gray-900">{appt.type || '予約'}</div>
+                              <div className="text-xs text-gray-500">{appt.date} {appt.time}</div>
+                            </div>
+                            <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${appt.status === 'scheduled' ? 'bg-blue-100 text-blue-700' : appt.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{appt.status}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {/* Health Records List */}
+                <div className="bg-white shadow rounded-lg p-6">
+                  <div className="flex items-center mb-2">
+                    <span className="flex items-center mr-2">
+                      <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse mr-1"></span>
+                      <span className="text-xs text-green-700">ライブ更新中</span>
+                    </span>
+                    <span className="font-semibold">最近の健康記録</span>
+                  </div>
+                  {healthRecordsLoading ? (
+                    <div className="text-gray-400 py-4">Loading...</div>
+                  ) : healthRecords.length === 0 ? (
+                    <div className="text-gray-400 py-4">健康記録はありません。</div>
+                  ) : (
+                    <ul className="divide-y divide-gray-100">
+                      {healthRecords.map((rec: any) => (
+                        <li key={rec.id} className="py-2">
+                          <div className="font-medium text-gray-900">{rec.title || rec.type || '記録'}</div>
+                          <div className="text-xs text-gray-500">{rec.date} {rec.provider && `| ${rec.provider}`}</div>
+                          <div className="text-xs text-gray-400 truncate">{rec.description}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {/* Messages List */}
+                <div className="bg-white shadow rounded-lg p-6">
+                  <div className="flex items-center mb-2">
+                    <span className="flex items-center mr-2">
+                      <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse mr-1"></span>
+                      <span className="text-xs text-green-700">ライブ更新中</span>
+                    </span>
+                    <span className="font-semibold">新着メッセージ</span>
+                  </div>
+                  {messagesLoading ? (
+                    <div className="text-gray-400 py-4">Loading...</div>
+                  ) : messages.length === 0 ? (
+                    <div className="text-gray-400 py-4">メッセージはありません。</div>
+                  ) : (
+                    <ul className="divide-y divide-gray-100">
+                      {messages.map((msg: any) => (
+                        <li key={msg.id} className="py-2">
+                          <div className="font-medium text-gray-900 truncate">{msg.subject || 'メッセージ'}</div>
+                          <div className="text-xs text-gray-500">{msg.date && new Date(msg.date).toLocaleString()}</div>
+                          <div className="text-xs text-gray-400 truncate">{msg.content}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
 

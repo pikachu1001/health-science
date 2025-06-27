@@ -3,98 +3,25 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
-
-interface Appointment {
-  id: string;
-  patientName: string;
-  date: string;
-  time: string;
-  type: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  notes?: string;
-  provider: string;
-}
-
-interface Patient {
-  id: string;
-  name: string;
-  lastVisit: string;
-  nextAppointment?: string;
-  medicalHistory: string[];
-  insuranceProvider?: string;
-  subscriptionPlan?: string;
-  totalEarnings: number;
-}
-
-interface ClinicStats {
-  totalPatients: number;
-  appointmentsToday: number;
-  pendingAppointments: number;
-  revenueThisMonth: number;
-  activeSubscriptions: number;
-  insuranceClaimsPending: number;
-}
+import { 
+  useClinicAppointments, 
+  useClinicPatients, 
+  useClinicDashboardStats, 
+  useClinicActivityLog
+} from '../../lib/real-time-hooks';
 
 export default function ClinicDashboard() {
   const router = useRouter();
   const { user, userData, loading } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
   const [payingBaseFee, setPayingBaseFee] = useState(false);
   const [baseFeeError, setBaseFeeError] = useState('');
 
-  const [appointments] = useState<Appointment[]>([
-    {
-      id: '1',
-      patientName: 'John Doe',
-      date: '2024-03-20',
-      time: '10:00',
-      type: 'General Check-up',
-      status: 'scheduled',
-      notes: 'First visit',
-      provider: 'Dr. Sarah Johnson',
-    },
-    {
-      id: '2',
-      patientName: 'Jane Smith',
-      date: '2024-03-20',
-      time: '11:30',
-      type: 'Follow-up Consultation',
-      status: 'scheduled',
-      provider: 'Dr. Michael Chen',
-    },
-  ]);
-
-  const [patients] = useState<Patient[]>([
-    {
-      id: '1',
-      name: 'John Doe',
-      lastVisit: '2024-02-15',
-      nextAppointment: '2024-03-20',
-      medicalHistory: ['Regular check-up', 'Blood test'],
-      insuranceProvider: 'HealthCare Plus',
-      subscriptionPlan: 'Plan A',
-      totalEarnings: 350000,
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      lastVisit: '2024-02-28',
-      nextAppointment: '2024-03-20',
-      medicalHistory: ['Consultation', 'X-ray'],
-      insuranceProvider: 'MediShield',
-      subscriptionPlan: 'Plan B',
-      totalEarnings: 350000,
-    },
-  ]);
-
-  const [stats] = useState<ClinicStats>({
-    totalPatients: 150,
-    appointmentsToday: 8,
-    pendingAppointments: 45,
-    revenueThisMonth: 250000,
-    activeSubscriptions: 120,
-    insuranceClaimsPending: 15,
-  });
+  // Use real-time hooks
+  const clinicId = user?.uid || '';
+  const { appointments, loading: appointmentsLoading } = useClinicAppointments(clinicId, 5);
+  const { patients, loading: patientsLoading } = useClinicPatients(clinicId, 5);
+  const { stats, loading: statsLoading } = useClinicDashboardStats(clinicId);
+  const { activities, loading: activitiesLoading } = useClinicActivityLog(clinicId, 10);
 
   const navigationItems = [
     { name: 'ダッシュボード', href: '/clinic/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -141,6 +68,13 @@ export default function ClinicDashboard() {
     return <div>Loading...</div>;
   }
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('ja-JP', {
+      style: 'currency',
+      currency: 'JPY',
+    }).format(amount);
+  };
+
   return (
     <DashboardLayout allowedRoles={['clinic']}>
       <div className="min-h-screen bg-gray-100">
@@ -150,6 +84,11 @@ export default function ClinicDashboard() {
             <div className="flex justify-between h-16 items-center">
               <div className="flex items-center">
                 <h1 className="text-xl font-bold text-gray-800">クリニックダッシュボード</h1>
+                {/* Real-time indicator */}
+                <div className="ml-4 flex items-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="ml-2 text-sm text-gray-500">ライブ更新中</span>
+                </div>
               </div>
               <div className="flex items-center space-x-4">
                 <button
@@ -160,10 +99,8 @@ export default function ClinicDashboard() {
                 </button>
                 <button
                   onClick={() => {
-                    // Clear any clinic-related data from localStorage/session
                     localStorage.removeItem('clinicToken');
                     sessionStorage.removeItem('clinicData');
-                    // Redirect to home page
                     router.push('/');
                   }}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
@@ -221,128 +158,131 @@ export default function ClinicDashboard() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
-            <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="p-5">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                      </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray-500 truncate">総患者数</dt>
-                          <dd className="flex items-baseline">
-                            <div className="text-2xl font-semibold text-gray-900">{stats.totalPatients}</div>
-                          </dd>
-                        </dl>
-                      </div>
+          <div className="flex-1 p-6">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {/* Total Patients */}
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
                     </div>
-                  </div>
-                </div>
-
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="p-5">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray-500 truncate">本日の予約数</dt>
-                          <dd className="flex items-baseline">
-                            <div className="text-2xl font-semibold text-gray-900">{stats.appointmentsToday}</div>
-                          </dd>
-                        </dl>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="p-5">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray-500 truncate">有効サブスクリプション</dt>
-                          <dd className="flex items-baseline">
-                            <div className="text-2xl font-semibold text-gray-900">{stats.activeSubscriptions}</div>
-                          </dd>
-                        </dl>
-                      </div>
+                    <div className="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt className="text-sm font-medium text-gray-500 truncate">総患者数</dt>
+                        <dd className="flex items-baseline">
+                          <div className="text-2xl font-semibold text-gray-900">
+                            {statsLoading ? '...' : stats.totalPatients}
+                          </div>
+                        </dd>
+                      </dl>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Today's Appointments */}
-              <div className="mt-8">
-                <h2 className="text-lg font-medium text-gray-900">Today's Appointments</h2>
-                <div className="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
-                  <ul className="divide-y divide-gray-200">
-                    {appointments.map((appointment) => (
-                      <li key={appointment.id} className="px-4 py-4 sm:px-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <p className="text-sm font-medium text-gray-900">{appointment.patientName}</p>
-                            <p className="ml-2 text-sm text-gray-500">{appointment.time}</p>
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt className="text-sm font-medium text-gray-500 truncate">今日の予約</dt>
+                        <dd className="flex items-baseline">
+                          <div className="text-2xl font-semibold text-gray-900">
+                            {statsLoading ? '...' : stats.appointmentsToday}
                           </div>
-                          <div className="flex items-center">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${appointment.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                                appointment.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                  'bg-red-100 text-red-800'
-                              }`}>
-                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-2">
-                          <p className="text-sm text-gray-500">{appointment.type}</p>
-                          <p className="text-sm text-gray-500">Provider: {appointment.provider}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                        </dd>
+                      </dl>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Recent Patients */}
-              <div className="mt-8">
-                <h2 className="text-lg font-medium text-gray-900">Recent Patients</h2>
-                <div className="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
-                  <ul className="divide-y divide-gray-200">
-                    {patients.map((patient) => (
-                      <li key={patient.id} className="px-4 py-4 sm:px-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <p className="text-sm font-medium text-gray-900">{patient.name}</p>
-                            <p className="ml-2 text-sm text-gray-500">Last Visit: {patient.lastVisit}</p>
+              {/* Pending Appointments */}
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt className="text-sm font-medium text-gray-500 truncate">保留中の予約</dt>
+                        <dd className="flex items-baseline">
+                          <div className="text-2xl font-semibold text-gray-900">
+                            {statsLoading ? '...' : stats.pendingAppointments}
                           </div>
-                          <div className="flex items-center">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              {patient.subscriptionPlan}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-2">
-                          <p className="text-sm text-gray-500">Insurance: {patient.insuranceProvider}</p>
-                          <p className="text-sm text-gray-500">Next Appointment: {patient.nextAppointment}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                        </dd>
+                      </dl>
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              {/* Monthly Revenue */}
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                      </svg>
+                    </div>
+                    <div className="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt className="text-sm font-medium text-gray-500 truncate">今月の収益</dt>
+                        <dd className="flex items-baseline">
+                          <div className="text-2xl font-semibold text-gray-900">
+                            {statsLoading ? '...' : formatCurrency(stats.revenueThisMonth)}
+                          </div>
+                        </dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Activity Log */}
+            <div className="mt-8 bg-white shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  アクティビティログ
+                  {activitiesLoading && <span className="ml-2 text-sm text-gray-500">(更新中...)</span>}
+                </h3>
+                {activities.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">アクティビティがありません</p>
+                ) : (
+                  <div className="space-y-3">
+                    {activities.map((activity) => (
+                      <div key={activity.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-900">{activity.description}</p>
+                          <p className="text-xs text-gray-500">
+                            {activity.timestamp.toLocaleString('ja-JP')}
+                            {activity.userName && ` • ${activity.userName}`}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
