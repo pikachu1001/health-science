@@ -222,7 +222,7 @@ export default function PatientsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{patient.name}</div>
                         <div className="text-sm text-gray-500">
-                          {patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1)} • {patient.dateOfBirth}
+                          {patient.gender === 'male' ? '男性' : patient.gender === 'female' ? '女性' : 'その他'} ・ {patient.dateOfBirth}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -231,7 +231,7 @@ export default function PatientsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{patient.subscriptionPlan}</div>
-                        <div className="text-sm text-gray-500">Last Visit: {patient.lastVisit}</div>
+                        <div className="text-sm text-gray-500">最終受診日: {patient.lastVisit}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {patient.insuranceProvider}

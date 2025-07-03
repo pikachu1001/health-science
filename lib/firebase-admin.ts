@@ -2,7 +2,7 @@ const admin = require('firebase-admin');
 
 // Ensure the service account key is available
 try {
-    const serviceAccount = require('../service-account-key.json');
+    const serviceAccount = require('../config/service-account-key.json');
 
     if (!admin.apps.length) {
         admin.initializeApp({

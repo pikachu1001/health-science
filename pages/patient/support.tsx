@@ -27,7 +27,7 @@ export default function Support() {
   const [contactForm, setContactForm] = useState({
     subject: '',
     message: '',
-    priority: 'normal',
+    priority: '普通',
   });
 
   const [faqs] = useState<FAQ[]>([
@@ -45,8 +45,8 @@ export default function Support() {
     },
     {
       id: '3',
-      question: 'How do I update my payment information?',
-      answer: 'You can update your payment information in the Subscription page under the Billing section.',
+      question: 'お支払い情報はどのように更新できますか？',
+      answer: 'サブスクリプションページの請求セクションでお支払い情報を更新できます。',
       category: 'billing',
     },
     {
@@ -97,7 +97,7 @@ export default function Support() {
       // TODO: Implement contact form submission
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
       setShowContactModal(false);
-      setContactForm({ subject: '', message: '', priority: 'normal' });
+      setContactForm({ subject: '', message: '', priority: '普通' });
     } catch (error) {
       console.error('Failed to submit contact form:', error);
     } finally {

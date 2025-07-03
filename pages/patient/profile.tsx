@@ -325,9 +325,7 @@ export default function PatientProfile() {
                       </div>
 
                       <div className="sm:col-span-6">
-                        <label htmlFor="medicalHistory.medications" className="block text-sm font-medium text-gray-700">
-                          現在の服薬
-                        </label>
+                        <label htmlFor="medicalHistory.medications" className="block text-sm font-medium text-gray-700">服用中の薬剤</label>
                         <div className="mt-1">
                           <textarea
                             name="medicalHistory.medications"

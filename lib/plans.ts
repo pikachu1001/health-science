@@ -22,7 +22,7 @@ export const plans: Plan[] = [
       '月次健康チェックイン',
       'メールサポート',
     ],
-    priceId: 'price_1RdrVtPGrTk9weIiaJI6z3V1', // TODO: Replace with your real Stripe Price ID
+    priceId: 'price_1Rcgm32XvBirdvBfju94MFkN', // TODO: Replace with your real Stripe Price ID
   },
   {
     id: 'B',
@@ -37,7 +37,7 @@ export const plans: Plan[] = [
       '優先メールサポート',
       'ウェルネスウェビナーへのアクセス',
     ],
-    priceId: 'price_1RdrXPPGrTk9weIiXUfgHlwq', // TODO: Replace with your real Stripe Price ID
+    priceId: 'price_1RcgmR2XvBirdvBfDk46d1dg', // TODO: Replace with your real Stripe Price ID
   },
   {
     id: 'C',
@@ -53,7 +53,7 @@ export const plans: Plan[] = [
       'ウェルネスウェビナーへのアクセス',
       '個別健康プラン',
     ],
-    priceId: 'price_1RdrYAPGrTk9weIixrMORCJr', // TODO: Replace with your real Stripe Price ID
+    priceId: 'price_1Rcgn22XvBirdvBfuX8xuYCg', // TODO: Replace with your real Stripe Price ID
   },
 ];
 

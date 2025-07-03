@@ -38,7 +38,7 @@ export default function Settings() {
     {
       id: 'appointment_reminders',
       name: 'Appointment Reminders',
-      description: 'Receive reminders for upcoming appointments',
+      description: '今後の予約のリマインダーを受け取る',
       enabled: true,
     },
     {
@@ -49,8 +49,8 @@ export default function Settings() {
     },
     {
       id: 'prescription_updates',
-      name: 'Prescription Updates',
-      description: 'Receive notifications about prescription changes',
+      name: '処方箋の更新',
+      description: '処方箋の変更に関する通知を受け取る',
       enabled: false,
     },
     {

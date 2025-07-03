@@ -39,7 +39,7 @@ export default function InsuranceClaimsPage() {
       submissionDate: '2024-03-15',
       insuranceProvider: 'HealthCare Plus',
       claimType: 'medical',
-      description: 'Regular checkup and blood tests',
+      description: '定期健診と血液検査',
       documents: ['medical_report.pdf', 'prescription.pdf'],
     },
     {
@@ -54,7 +54,7 @@ export default function InsuranceClaimsPage() {
       processedDate: '2024-03-12',
       insuranceProvider: 'MediShield',
       claimType: 'dental',
-      description: 'Root canal treatment',
+      description: '根管治療',
       documents: ['dental_report.pdf', 'xray.pdf'],
     },
     {
@@ -69,7 +69,7 @@ export default function InsuranceClaimsPage() {
       processedDate: '2024-03-07',
       insuranceProvider: 'HealthCare Plus',
       claimType: 'prescription',
-      description: 'Monthly medication',
+      description: '月額薬剤',
       documents: ['prescription.pdf', 'receipt.pdf'],
     },
   ]);
