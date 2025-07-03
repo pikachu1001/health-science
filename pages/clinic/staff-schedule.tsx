@@ -129,14 +129,14 @@ export default function StaffSchedule() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </Link>
-              <h1 className="ml-4 text-xl font-bold text-gray-800">Staff Schedule</h1>
+              <h1 className="ml-4 text-xl font-bold text-gray-800">スタッフスケジュール</h1>
             </div>
             <div>
               <button
                 onClick={() => {/* TODO: Implement add schedule modal */ }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Add Schedule
+                スケジュール追加
               </button>
             </div>
           </div>
@@ -236,7 +236,7 @@ export default function StaffSchedule() {
                         編集
                       </button>
                       <button
-                        onClick={() => {/* TODO: Implement view full schedule */ }}
+                        onClick={() => {/* TODO: Implement view all schedules */ }}
                         className="text-green-600 hover:text-green-900"
                       >
                         全スケジュールを見る

@@ -70,7 +70,7 @@ export default function TreatmentHistory() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </Link>
-              <h1 className="ml-4 text-xl font-bold text-gray-800">Treatment History</h1>
+              <h1 className="ml-4 text-xl font-bold text-gray-800">治療記録</h1>
             </div>
           </div>
         </div>
@@ -89,7 +89,6 @@ export default function TreatmentHistory() {
             value={selectedPatient || ''}
             onChange={(e) => setSelectedPatient(e.target.value)}
           >
-            <option value="">All Patients</option>
             <option value="">全ての患者</option>
             <option value="John Doe">John Doe</option>
             <option value="Jane Smith">Jane Smith</option>
@@ -120,7 +119,7 @@ export default function TreatmentHistory() {
                         <div className="mt-2 flex justify-between">
                           <div className="sm:flex">
                             <p className="flex items-center text-sm text-gray-500">
-                              {treatment.type}
+                              {treatment.type === 'General Check-up' ? '一般健診' : treatment.type === 'Follow-up Consultation' ? '再診相談' : treatment.type}
                             </p>
                             <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
                               {treatment.doctor}
@@ -133,12 +132,12 @@ export default function TreatmentHistory() {
                           </div>
                         </div>
                         <div className="mt-2">
-                          <p className="text-sm text-gray-500">{treatment.description}</p>
+                          <p className="text-sm text-gray-500">{treatment.description === 'Regular health assessment' ? '定期健康診断' : treatment.description === 'Post-surgery check' ? '手術後のチェック' : treatment.description}</p>
                         </div>
                         {treatment.medications && (
                           <div className="mt-2">
                             <p className="text-sm text-gray-500">
-                              Medications: {treatment.medications.join(', ')}
+                              薬: {treatment.medications.join(', ')}
                             </p>
                           </div>
                         )}

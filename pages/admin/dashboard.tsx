@@ -276,7 +276,7 @@ export default function AdminDashboard() {
               {/* Clinics Overview */}
               <div className="mt-8">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-medium text-gray-900">クリニック概要</h2>
+                  <h2 className="text-lg font-bold text-gray-800">クリニック概要</h2>
                   <button
                     onClick={() => router.push('/admin/clinics/new')}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -327,7 +327,7 @@ export default function AdminDashboard() {
 
               {/* Real-time Activity Feed */}
               <div className="mt-8">
-                <h2 className="text-lg font-medium text-gray-900 mb-2">最新のアクティビティ</h2>
+                <h2 className="text-lg font-bold text-gray-800 mt-8 mb-4">最新のアクティビティ</h2>
                 <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                   <ul className="divide-y divide-gray-200">
                     {activityLoading ? (
@@ -351,12 +351,12 @@ export default function AdminDashboard() {
               {/* Real-time Subscription Plans */}
               <div className="mt-8">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-medium text-gray-900">Subscription Plans</h2>
+                  <h2 className="text-lg font-bold text-gray-800 mt-8 mb-4">サブスクリプションプラン</h2>
                   <button
-                    onClick={() => router.push('/admin/subscriptions/new')}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    onClick={() => router.push('/admin/subscriptions/new')}
                   >
-                    Add New Plan
+                    新しいプランを追加
                   </button>
                 </div>
                 <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -386,10 +386,10 @@ export default function AdminDashboard() {
                         </div>
                         <div className="mt-4">
                           <button
-                            onClick={() => router.push(`/admin/subscriptions/${plan.id}`)}
-                            className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            onClick={() => router.push(`/admin/subscriptions/${plan.id}/edit`)}
                           >
-                            Manage Plan
+                            プランを編集
                           </button>
                         </div>
                       </div>

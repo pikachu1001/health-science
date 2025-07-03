@@ -232,14 +232,14 @@ export default function ClinicsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
-                          onClick={() => router.push(`/admin/clinics/${clinic.id}`)}
                           className="text-blue-600 hover:text-blue-900 mr-4"
+                          onClick={() => router.push(`/admin/clinics/${clinic.id}`)}
                         >
                           詳細
                         </button>
                         <button
+                          className="text-blue-600 hover:text-blue-900"
                           onClick={() => router.push(`/admin/clinics/${clinic.id}/edit`)}
-                          className="text-indigo-600 hover:text-indigo-900"
                         >
                           編集
                         </button>

@@ -198,7 +198,7 @@ export default function PatientAppointments() {
                         </div>
                         <div className="ml-2 flex-shrink-0 flex">
                           <p className="text-sm text-gray-500">
-                            {new Date(appointment.date).toLocaleDateString()} {appointment.time}〜
+                            {new Date(appointment.date).toLocaleDateString('ja-JP')} {appointment.time}～
                           </p>
                         </div>
                       </div>
@@ -218,7 +218,7 @@ export default function PatientAppointments() {
                       </div>
                       {appointment.notes && (
                         <div className="mt-2">
-                          <p className="text-sm text-gray-500">備考: {appointment.notes}</p>
+                          <p className="text-sm text-gray-500">備考: 保険証をお持ちください</p>
                         </div>
                       )}
                     </div>
@@ -244,13 +244,13 @@ export default function PatientAppointments() {
                           <p className="text-sm font-medium text-blue-600 truncate">{appointment.type}</p>
                           <div className="ml-2 flex-shrink-0 flex">
                             <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                              {appointment.status}
+                              {appointment.status === 'completed' ? '完了' : appointment.status === 'scheduled' ? '予約済み' : 'キャンセル'}
                             </p>
                           </div>
                         </div>
                         <div className="ml-2 flex-shrink-0 flex">
                           <p className="text-sm text-gray-500">
-                            {new Date(appointment.date).toLocaleDateString()} at {appointment.time}
+                            {new Date(appointment.date).toLocaleDateString('ja-JP')} {appointment.time}～
                           </p>
                         </div>
                       </div>
@@ -291,7 +291,6 @@ export default function PatientAppointments() {
                           onChange={e => setSelectedProvider(e.target.value)}
                           className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                         >
-                          <option value="">Select a provider</option>
                           <option value="">医師を選択してください</option>
                           {providers.map(provider => (
                             <option key={provider.id} value={provider.id}>
@@ -326,7 +325,6 @@ export default function PatientAppointments() {
                           onChange={e => setSelectedTime(e.target.value)}
                           className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                         >
-                          <option value="">Select a time</option>
                           <option value="">時間を選択してください</option>
                           {selectedProvider &&
                             selectedDate &&
@@ -352,7 +350,6 @@ export default function PatientAppointments() {
                           onChange={e => setAppointmentType(e.target.value)}
                           className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                         >
-                          <option value="">Select type</option>
                           <option value="">種類を選択してください</option>
                           <option value="General Check-up">一般健診</option>
                           <option value="Follow-up">再診</option>

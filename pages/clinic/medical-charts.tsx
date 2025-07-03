@@ -106,7 +106,7 @@ export default function MedicalCharts() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </Link>
-              <h1 className="ml-4 text-xl font-bold text-gray-800">Medical Charts</h1>
+              <h1 className="ml-4 text-xl font-bold text-gray-800">医療チャート</h1>
             </div>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function MedicalCharts() {
         {/* Patient Selection */}
         <div className="mb-6">
           <label htmlFor="patient" className="block text-sm font-medium text-gray-700">
-            Select Patient
+            患者を選択
           </label>
           <select
             id="patient"
@@ -125,7 +125,7 @@ export default function MedicalCharts() {
             value={selectedPatient || ''}
             onChange={(e) => setSelectedPatient(e.target.value)}
           >
-            <option value="">Select a patient</option>
+            <option value="">患者を選択してください</option>
             {patients.map((patient) => (
               <option key={patient.id} value={patient.name}>
                 {patient.name}
@@ -164,7 +164,7 @@ export default function MedicalCharts() {
                     <dd className="mt-1 text-sm text-gray-900">{selectedPatientData.allergies.join(', ')}</dd>
                   </div>
                   <div className="sm:col-span-1">
-                    <dt className="text-sm font-medium text-gray-500">Current Medications</dt>
+                    <dt className="text-sm font-medium text-gray-500">現在の薬</dt>
                     <dd className="mt-1 text-sm text-gray-900">{selectedPatientData.medications.join(', ')}</dd>
                   </div>
                 </dl>
@@ -174,17 +174,17 @@ export default function MedicalCharts() {
             {/* Vital Signs History */}
             <div className="bg-white shadow overflow-hidden sm:rounded-lg">
               <div className="px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">Vital Signs History</h3>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">バイタルサイン履歴</h3>
               </div>
               <div className="border-t border-gray-200">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Blood Pressure</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Heart Rate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Temperature</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日付</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">血圧</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">心拍数</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">体温</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">体重</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BMI</th>
                     </tr>
                   </thead>
@@ -205,8 +205,8 @@ export default function MedicalCharts() {
             </div>
           </div>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Please select a patient to view their medical chart</p>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-gray-500">患者の医療チャートを見るには患者を選択してください</p>
           </div>
         )}
       </div>

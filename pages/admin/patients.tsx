@@ -247,14 +247,14 @@ export default function PatientsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
-                          onClick={() => router.push(`/admin/patients/${patient.id}`)}
                           className="text-blue-600 hover:text-blue-900 mr-4"
+                          onClick={() => router.push(`/admin/patients/${patient.id}`)}
                         >
                           詳細
                         </button>
                         <button
+                          className="text-blue-600 hover:text-blue-900"
                           onClick={() => router.push(`/admin/patients/${patient.id}/edit`)}
-                          className="text-indigo-600 hover:text-indigo-900"
                         >
                           編集
                         </button>

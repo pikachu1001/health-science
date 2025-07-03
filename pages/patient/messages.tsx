@@ -139,7 +139,7 @@ export default function PatientMessages() {
               <div className="col-span-4 border-r border-gray-200">
                 <div className="h-full flex flex-col">
                   <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">Conversations</h3>
+                    <h3 className="text-lg font-medium leading-6 text-gray-900">会話</h3>
                   </div>
                   <div className="flex-1 overflow-y-auto">
                     <ul className="divide-y divide-gray-200">
@@ -169,7 +169,7 @@ export default function PatientMessages() {
                               </div>
                             </div>
                             <div className="mt-2">
-                              <p className="text-sm text-gray-500 truncate">{conversation.lastMessage}</p>
+                              <p className="text-sm text-gray-500 truncate">{conversation.lastMessage === 'Please remember to bring your test results to your next appointment.' ? '次回の診察に検査結果をお持ちください' : conversation.lastMessage === 'Your test results are now available in your health records.' ? '検査結果が健康記録でご覧いただけます' : conversation.lastMessage}</p>
                             </div>
                           </div>
                         </li>

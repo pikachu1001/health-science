@@ -204,10 +204,10 @@ export default function InsuranceClaimsPage() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
                   <option value="all">すべてのステータス</option>
-                  <option value="pending">審査中</option>
+                  <option value="pending">保留中</option>
                   <option value="approved">承認済み</option>
                   <option value="rejected">却下</option>
-                  <option value="paid">支払い済み</option>
+                  <option value="paid">支払済み</option>
                 </select>
               </div>
               <div className="flex-1">
@@ -234,27 +234,13 @@ export default function InsuranceClaimsPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      請求情報
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      患者
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      クリニック
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      金額
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ステータス
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      日付
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      操作
-                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">請求情報</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">患者</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">クリニック</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">金額</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日付</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -289,24 +275,24 @@ export default function InsuranceClaimsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
-                          onClick={() => router.push(`/admin/insurance-claims/${claim.id}`)}
                           className="text-blue-600 hover:text-blue-900 mr-4"
+                          onClick={() => router.push(`/admin/insurance-claims/${claim.id}`)}
                         >
-                          View
+                          詳細
                         </button>
                         {claim.status === 'pending' && (
                           <>
                             <button
-                              onClick={() => {/* TODO: Implement approve claim */ }}
                               className="text-green-600 hover:text-green-900 mr-4"
+                              onClick={() => {/* Approve logic */}}
                             >
-                              Approve
+                              承認
                             </button>
                             <button
-                              onClick={() => {/* TODO: Implement reject claim */ }}
                               className="text-red-600 hover:text-red-900"
+                              onClick={() => {/* Reject logic */}}
                             >
-                              Reject
+                              却下
                             </button>
                           </>
                         )}

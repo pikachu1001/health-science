@@ -88,14 +88,14 @@ export default function Inventory() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </Link>
-              <h1 className="ml-4 text-xl font-bold text-gray-800">Inventory Management</h1>
+              <h1 className="ml-4 text-xl font-bold text-gray-800">在庫管理</h1>
             </div>
             <div>
               <button
                 onClick={() => {/* TODO: Implement add item modal */ }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Add Item
+                アイテム追加
               </button>
             </div>
           </div>
@@ -116,7 +116,6 @@ export default function Inventory() {
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
-              <option value="all">All Categories</option>
               <option value="all">全てのカテゴリー</option>
               {categories.map((category) => (
                 <option key={category} value={category}>
@@ -133,7 +132,7 @@ export default function Inventory() {
                 checked={showLowStock}
                 onChange={(e) => setShowLowStock(e.target.checked)}
               />
-              <span className="ml-2 text-sm text-gray-700">Show low stock only</span>
+              <span className="ml-2 text-sm text-gray-700">在庫が少ないもののみ表示</span>
             </label>
           </div>
         </div>
