@@ -82,6 +82,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         baseFeeStatus: 'pending',
       });
     }
+
+    // --- Post-signup check: Wait for user doc to exist ---
+    let retries = 0;
+    const maxRetries = 5;
+    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+    while (retries < maxRetries) {
+      const docSnap = await getDoc(doc(db, "users", user.uid));
+      if (docSnap.exists()) {
+        break;
+      }
+      await delay(300); // wait 300ms before retry
+      retries++;
+    }
   };
 
   const signIn = async (email: string, password: string) => {
