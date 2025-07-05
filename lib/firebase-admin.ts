@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+import * as admin from 'firebase-admin';
 
 // Ensure the service account key is available
 try {
@@ -6,7 +6,11 @@ try {
 
     if (!admin.apps.length) {
         admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
+            credential: admin.credential.cert({
+                projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+            }),
         });
         console.log('Firebase Admin SDK Initialized.');
     }
@@ -24,6 +28,9 @@ if (!(global as any)._adminAuth) {
 if (!(global as any)._adminDb) {
     (global as any)._adminDb = admin.apps.length ? admin.firestore() : null;
 }
+
+const db = admin.firestore();
+export { db };
 
 module.exports = {
     adminAuth: (global as any)._adminAuth,
