@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 interface Clinic {
   id: string;
   name: string;
-  status: 'active' | 'pending' | 'suspended';
+  status: 'active' | '保留中' | '一時停止中';
   location: string;
   specialties: string[];
   patientCount: number;
@@ -39,7 +39,7 @@ export default function ClinicsPage() {
     {
       id: '2',
       name: 'Osaka Health Clinic',
-      status: 'pending',
+      status: '保留中',
       location: 'Osaka, Japan',
       specialties: ['Pediatrics', 'Dermatology'],
       patientCount: 180,
@@ -51,7 +51,7 @@ export default function ClinicsPage() {
     {
       id: '3',
       name: 'Kyoto Wellness Center',
-      status: 'suspended',
+      status: '一時停止中',
       location: 'Kyoto, Japan',
       specialties: ['Alternative Medicine', 'Physical Therapy'],
       patientCount: 120,
@@ -175,8 +175,8 @@ export default function ClinicsPage() {
                 >
                   <option value="all">すべてのステータス</option>
                   <option value="active">有効</option>
-                  <option value="pending">承認待ち</option>
-                  <option value="suspended">停止中</option>
+                  <option value="保留中">承認待ち</option>
+                  <option value="一時停止中">停止中</option>
                 </select>
               </div>
               <div className="flex items-end">
@@ -213,10 +213,10 @@ export default function ClinicsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.location}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clinic.status === 'active' ? 'bg-green-100 text-green-800' :
-                          clinic.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          clinic.status === '保留中' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-800'
                           }`}>
-                          {clinic.status === 'active' ? '有効' : clinic.status === 'pending' ? '承認待ち' : '停止中'}
+                          {clinic.status === 'active' ? '有効' : clinic.status === '保留中' ? '承認待ち' : '停止中'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

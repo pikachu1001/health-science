@@ -38,7 +38,7 @@ export interface Clinic {
   clinicId: string;
   name: string;
   email: string;
-  baseFeeStatus: 'active' | 'unpaid' | 'suspended';
+  baseFeeStatus: '有効' | '未払い' | '停止中' | '保留中';
   referredPatients: string[];
   commissionEarned: number;
   createdAt: any; // Firestore Timestamp

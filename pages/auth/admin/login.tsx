@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
 import { FirebaseError } from 'firebase/app';
+import { fetchUserProfileWithRetry } from '../../../lib/authHelpers';
 
 interface FormErrors {
   email?: string;
@@ -67,14 +68,20 @@ export default function AdminLogin() {
       }
       await signIn(formData.email, formData.password);
 
-      // Fetch user data from Firestore
-      const { getFirestore, doc, getDoc } = await import('firebase/firestore');
-      const db = getFirestore();
+      // Fetch user data from Firestore with retry
       const user = (await import('firebase/auth')).getAuth().currentUser;
       if (!user) throw new Error('User not found after sign in');
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (!userDoc.exists()) throw new Error('User data not found');
-      const userData = userDoc.data();
+      let userData;
+      try {
+        userData = await fetchUserProfileWithRetry(user.uid);
+      } catch (e) {
+        setErrors(prev => ({
+          ...prev,
+          submit: 'ユーザープロファイルが見つかりません。しばらくしてから再度お試しください。'
+        }));
+        setIsLoading(false);
+        return;
+      }
       if (userData.role !== 'admin') {
         const { signOut } = await import('firebase/auth');
         const { auth } = await import('../../../lib/firebase');

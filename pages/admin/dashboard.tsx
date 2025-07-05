@@ -50,7 +50,7 @@ export default function AdminDashboard() {
   const [subscriptionPlans] = useState<SubscriptionPlan[]>([
     {
       id: '1',
-      name: 'Plan A',
+      name: 'プランA',
       price: 3000,
       features: ['Basic Health Coverage', 'Online Consultations'],
       activeSubscribers: 500,
@@ -58,7 +58,7 @@ export default function AdminDashboard() {
     },
     {
       id: '2',
-      name: 'Plan B',
+      name: 'プランB',
       price: 4000,
       features: ['Extended Coverage', 'Priority Appointments'],
       activeSubscribers: 300,
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
     },
     {
       id: '3',
-      name: 'Plan C',
+      name: 'プランC',
       price: 5000,
       features: ['Premium Coverage', '24/7 Support'],
       activeSubscribers: 200,
@@ -106,6 +106,30 @@ export default function AdminDashboard() {
   // Aggregate commission and admin revenue
   const totalClinicCommission = subsLoading ? 0 : subscriptions.reduce((sum, s) => sum + (s.clinicCommission || 0), 0);
   const totalAdminRevenue = subsLoading ? 0 : subscriptions.reduce((sum, s) => sum + (s.adminRevenue || 0), 0);
+
+  // Plan features translation
+  const planFeaturesMap: { [key: string]: string } = {
+    'Basic Health Coverage': '基本健康保険',
+    'Online Consultations': 'オンライン診療',
+    'Extended Coverage': '拡張保険',
+    'Priority Appointments': '優先予約',
+    'Premium Coverage': 'プレミアム保険',
+    '24/7 Support': '24時間サポート',
+  };
+
+  // Mapping functions for Japanese display
+  const displayStatus = (status: string) => {
+    if (status === 'pending') return '保留中';
+    if (status === 'active') return '有効';
+    if (status === 'unpaid') return '未払い';
+    if (status === 'suspended') return '停止中';
+    return status;
+  };
+  const planNameMap: { [key: string]: string } = {
+    'Plan A': 'プランA',
+    'Plan B': 'プランB',
+    'Plan C': 'プランC',
+  };
 
   return (
     <DashboardLayout allowedRoles={['admin']}>
@@ -298,24 +322,30 @@ export default function AdminDashboard() {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {clinicsLoading ? (
-                        <tr><td colSpan={6} className="text-center py-4">Loading...</td></tr>
+                        <tr><td colSpan={6} className="text-center py-4">読み込み中...</td></tr>
                       ) : clinics.length === 0 ? (
-                        <tr><td colSpan={6} className="text-center py-4">No clinics found.</td></tr>
+                        <tr><td colSpan={6} className="text-center py-4">クリニックが見つかりません。</td></tr>
                       ) : clinics.map((clinic) => (
                         <tr key={clinic.clinicId}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{clinic.name}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.email}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clinic.baseFeeStatus === 'active' ? 'bg-green-100 text-green-800' : clinic.baseFeeStatus === 'unpaid' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{clinic.baseFeeStatus}</span>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              displayStatus(clinic.baseFeeStatus) === '有効' ? 'bg-green-100 text-green-800' :
+                              displayStatus(clinic.baseFeeStatus) === '未払い' ? 'bg-yellow-100 text-yellow-800' :
+                              displayStatus(clinic.baseFeeStatus) === '保留中' ? 'bg-red-100 text-red-800' :
+                              displayStatus(clinic.baseFeeStatus) === '停止中' ? 'bg-gray-300 text-gray-700' :
+                              'bg-gray-200 text-gray-500'
+                            }`}>{displayStatus(clinic.baseFeeStatus)}</span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.referredPatients ? clinic.referredPatients.length : 0}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.baseFeeStatus}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{displayStatus(clinic.baseFeeStatus)}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <button
                               onClick={() => router.push(`/admin/clinics/${clinic.clinicId}`)}
                               className="text-blue-600 hover:text-blue-900"
                             >
-                              View Details
+                              詳細を見る
                             </button>
                           </td>
                         </tr>
@@ -331,9 +361,9 @@ export default function AdminDashboard() {
                 <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                   <ul className="divide-y divide-gray-200">
                     {activityLoading ? (
-                      <li className="py-4 text-center">Loading...</li>
+                      <li className="py-4 text-center">読み込み中...</li>
                     ) : activities.length === 0 ? (
-                      <li className="py-4 text-center">No recent activity.</li>
+                      <li className="py-4 text-center">最近のアクティビティはありません。</li>
                     ) : activities.map(activity => (
                       <li key={activity.activityId} className="px-6 py-4">
                         <div className="flex items-center justify-between">
@@ -364,25 +394,25 @@ export default function AdminDashboard() {
                     <div key={plan.id} className="bg-white overflow-hidden shadow rounded-lg">
                       <div className="p-5">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-medium text-gray-900">{plan.name}</h3>
+                          <h3 className="text-lg font-medium text-gray-900">{planNameMap[plan.name] || plan.name}</h3>
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            active
+                            有効
                           </span>
                         </div>
                         <p className="mt-2 text-3xl font-bold text-gray-900">¥{plan.price.toLocaleString()}</p>
-                        <p className="mt-1 text-sm text-gray-500">per month</p>
+                        <p className="mt-1 text-sm text-gray-500">月額</p>
                         <ul className="mt-4 space-y-2">
                           {plan.features.map((feature, index) => (
                             <li key={index} className="flex items-start">
                               <svg className="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
-                              <span className="ml-2 text-sm text-gray-500">{feature}</span>
+                              <span className="ml-2 text-sm text-gray-500">{planFeaturesMap[feature] || feature}</span>
                             </li>
                           ))}
                         </ul>
                         <div className="mt-4">
-                          <p className="text-sm text-gray-500">Active Subscribers: {plan.activeSubscribers}</p>
+                          <p className="text-sm text-gray-500">アクティブ契約者数: {plan.activeSubscribers}</p>
                         </div>
                         <div className="mt-4">
                           <button
