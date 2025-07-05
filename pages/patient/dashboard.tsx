@@ -120,6 +120,7 @@ export default function PatientDashboard() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<HealthMetric>({
     status: 'active',
   });
+  const [subscriptionMessage, setSubscriptionMessage] = useState<string | null>(null);
 
   const patientId = user?.uid || '';
   const { appointments, loading: appointmentsLoading } = usePatientAppointments(patientId, 5);
@@ -132,8 +133,16 @@ export default function PatientDashboard() {
     }
   }, [user, loading, router]);
 
+  useEffect(() => {
+    if (router.query.success === 'true') {
+      setSubscriptionMessage('サブスクリプションが正常に完了しました！');
+    } else if (router.query.canceled === 'true') {
+      setSubscriptionMessage('サブスクリプションがキャンセルされました。');
+    }
+  }, [router.query]);
+
   if (loading || !user) {
-    return <div>Loading...</div>;
+    return <div>読み込み中...</div>;
   }
 
   const handleLogout = () => {
@@ -200,6 +209,11 @@ export default function PatientDashboard() {
           {/* Main Content */}
           <div className="flex-1 p-8">
             <div className="max-w-7xl mx-auto">
+              {subscriptionMessage && (
+                <div className={`mb-6 text-center py-3 px-4 rounded-md font-semibold ${router.query.success === 'true' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {subscriptionMessage}
+                </div>
+              )}
               {/* Quick Stats */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 {/* Upcoming Appointments */}
@@ -307,7 +321,7 @@ export default function PatientDashboard() {
                     <span className="font-semibold">今後の予約</span>
                   </div>
                   {appointmentsLoading ? (
-                    <div className="text-gray-400 py-4">Loading...</div>
+                    <div className="text-gray-400 py-4">読み込み中...</div>
                   ) : appointments.length === 0 ? (
                     <div className="text-gray-400 py-4">予約はありません。</div>
                   ) : (
@@ -336,7 +350,7 @@ export default function PatientDashboard() {
                     <span className="font-semibold">最近の健康記録</span>
                   </div>
                   {healthRecordsLoading ? (
-                    <div className="text-gray-400 py-4">Loading...</div>
+                    <div className="text-gray-400 py-4">読み込み中...</div>
                   ) : healthRecords.length === 0 ? (
                     <div className="text-gray-400 py-4">健康記録はありません。</div>
                   ) : (
@@ -361,7 +375,7 @@ export default function PatientDashboard() {
                     <span className="font-semibold">新着メッセージ</span>
                   </div>
                   {messagesLoading ? (
-                    <div className="text-gray-400 py-4">Loading...</div>
+                    <div className="text-gray-400 py-4">読み込み中...</div>
                   ) : messages.length === 0 ? (
                     <div className="text-gray-400 py-4">メッセージはありません。</div>
                   ) : (

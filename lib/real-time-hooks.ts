@@ -785,11 +785,38 @@ export function useClinicDashboardStats(clinicId: string) {
 
     // Calculate revenue (this would need to be implemented based on your data structure)
     // For now, we'll use a placeholder
-    setStats(prev => ({
-      ...prev,
-      revenueThisMonth: 250000, // This should be calculated from actual data
-      lastUpdated: new Date(),
-    }));
+    // setStats(prev => ({
+    //   ...prev,
+    //   revenueThisMonth: 250000, // This should be calculated from actual data
+    //   lastUpdated: new Date(),
+    // }));
+
+    // Real calculation for revenueThisMonth
+    const unsubscribeRevenue = onSnapshot(
+      query(
+        subscriptionsRef,
+        where('clinicId', '==', clinicId),
+        where('status', '==', 'active'),
+        where('startDate', '>=', startOfMonth),
+        where('startDate', '<=', endOfMonth)
+      ),
+      (snapshot) => {
+        let totalRevenue = 0;
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          // Assume each subscription has a 'price' field (number, in JPY)
+          if (typeof data.price === 'number') {
+            totalRevenue += data.price;
+          }
+        });
+        setStats(prev => ({
+          ...prev,
+          revenueThisMonth: totalRevenue,
+          lastUpdated: new Date(),
+        }));
+      }
+    );
+    unsubscribers.push(unsubscribeRevenue);
 
     setLoading(false);
 

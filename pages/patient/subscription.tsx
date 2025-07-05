@@ -10,12 +10,21 @@ export default function SubscriptionPage() {
   const { user, userData, loading } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [subscriptionMessage, setSubscriptionMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace('/auth/patient/login');
     }
   }, [user, loading, router]);
+
+  useEffect(() => {
+    if (router.query.success === 'true') {
+      setSubscriptionMessage('サブスクリプションが正常に完了しました！');
+    } else if (router.query.canceled === 'true') {
+      setSubscriptionMessage('サブスクリプションがキャンセルされました。');
+    }
+  }, [router.query]);
 
   if (loading || !user) {
     return <div>Loading...</div>;
@@ -68,6 +77,11 @@ export default function SubscriptionPage() {
             <p className="mt-4 text-xl text-gray-500">
               あなたに最適なプランを選択してください。
             </p>
+            {subscriptionMessage && (
+              <div className={`mt-6 text-center py-3 px-4 rounded-md font-semibold ${router.query.success === 'true' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {subscriptionMessage}
+              </div>
+            )}
           </div>
 
           <div className="mt-12 space-y-8 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-x-8">
