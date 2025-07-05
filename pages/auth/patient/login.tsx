@@ -46,7 +46,11 @@ export default function PatientLogin() {
         setIsLoading(false);
         return;
       }
-      router.push('/patient/dashboard');
+      if (router.query.returnTo) {
+        router.replace(router.query.returnTo as string);
+      } else {
+        router.push('/patient/dashboard');
+      }
     } catch (err) {
       console.error('Login error:', err);
       if (err instanceof FirebaseError) {
