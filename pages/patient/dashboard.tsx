@@ -114,7 +114,7 @@ const navigation = [
 ];
 
 export default function PatientDashboard() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState<HealthMetric>({
@@ -145,9 +145,15 @@ export default function PatientDashboard() {
     return <div>読み込み中...</div>;
   }
 
-  const handleLogout = () => {
-    // TODO: Implement actual logout logic
-    router.push('/');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if logout fails, redirect to home
+      router.push('/');
+    }
   };
 
   return (

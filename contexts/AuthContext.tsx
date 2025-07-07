@@ -108,7 +108,57 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!auth) {
       throw new Error('Firebase auth is not initialized');
     }
-    await signOut(auth);
+    
+    try {
+      // Clear Firebase auth
+      await signOut(auth);
+      
+      // Clear any stored user data
+      if (typeof window !== 'undefined') {
+        // Clear localStorage
+        localStorage.removeItem('firebaseUser');
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('clinicToken');
+        localStorage.removeItem('patientToken');
+        localStorage.removeItem('pendingPlanId');
+        
+        // Clear sessionStorage
+        sessionStorage.removeItem('adminData');
+        sessionStorage.removeItem('clinicData');
+        sessionStorage.removeItem('patientData');
+        sessionStorage.removeItem('userData');
+        
+        // Clear any other potential auth-related items
+        localStorage.removeItem('authUser');
+        sessionStorage.removeItem('authUser');
+      }
+      
+      // Clear local state
+      setUser(null);
+      setUserData(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if Firebase logout fails, clear local state
+      setUser(null);
+      setUserData(null);
+      
+      // Clear storage anyway
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('firebaseUser');
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('clinicToken');
+        localStorage.removeItem('patientToken');
+        localStorage.removeItem('pendingPlanId');
+        sessionStorage.removeItem('adminData');
+        sessionStorage.removeItem('clinicData');
+        sessionStorage.removeItem('patientData');
+        sessionStorage.removeItem('userData');
+        localStorage.removeItem('authUser');
+        sessionStorage.removeItem('authUser');
+      }
+      
+      throw error;
+    }
   };
 
   const value = {

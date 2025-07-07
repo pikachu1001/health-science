@@ -14,10 +14,11 @@ interface SystemSetting {
 }
 
 export default function SettingsPage() {
-  const { user, loading, userData } = useAuth();
+  const { user, loading, userData, logout } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [settings] = useState<SystemSetting[]>([
     {
@@ -174,6 +175,17 @@ export default function SettingsPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if logout fails, redirect to home
+      router.push('/');
+    }
+  };
+
   useEffect(() => {
     if (!loading && (!user || userData?.role !== 'admin')) {
       router.replace('/auth/admin/login');
@@ -195,11 +207,7 @@ export default function SettingsPage() {
             </div>
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => {
-                  localStorage.removeItem('adminToken');
-                  sessionStorage.removeItem('adminData');
-                  router.push('/');
-                }}
+                onClick={handleLogout}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
                 ログアウト

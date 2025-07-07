@@ -67,6 +67,30 @@ export default function Home() {
     }
   };
 
+  const handlePatientLogin = () => {
+    if (user && userData?.role === 'patient') {
+      router.push('/patient/dashboard');
+    } else {
+      router.push('/auth/patient/login');
+    }
+  };
+
+  const handleClinicLogin = () => {
+    if (user && userData?.role === 'clinic') {
+      router.push('/clinic/dashboard');
+    } else {
+      router.push('/auth/clinic/login');
+    }
+  };
+
+  const handleAdminLogin = () => {
+    if (user && userData?.role === 'admin') {
+      router.push('/admin/dashboard');
+    } else {
+      router.push('/auth/admin/login');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-100 flex flex-col">
       {/* Navbar */}
@@ -78,12 +102,12 @@ export default function Home() {
               <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">ヘルスサポートシステム</h1>
             </div>
             <div>
-              <Link
-                href="/auth/admin/login"
+              <button
+                onClick={handleAdminLogin}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 shadow-md"
               >
                 <FaUserMd className="mr-2" /> 管理者ログイン
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -95,13 +119,13 @@ export default function Home() {
         <p className="mt-2 text-lg sm:text-2xl text-gray-600 max-w-2xl mx-auto mb-8">健康とウェルネスの信頼できるパートナー。患者様、クリニック、管理者のためのスマートなサブスクリプション管理。</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
           <button
-            onClick={() => router.push('/auth/patient/login')}
+            onClick={handlePatientLogin}
             className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-lg font-semibold rounded-md text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-lg transition"
           >
             <FaUser className="mr-2" /> 患者ログイン
           </button>
           <button
-            onClick={() => router.push('/auth/clinic/login')}
+            onClick={handleClinicLogin}
             className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-lg font-semibold rounded-md text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 shadow-lg transition"
           >
             <FaClinicMedical className="mr-2" /> クリニックログイン

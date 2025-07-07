@@ -23,12 +23,13 @@ import { useAuth } from '../contexts/AuthContext';
 
 // Hook for real-time user data
 export const useUserData = (userId: string) => {
+  const { user } = useAuth();
   const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId || !db) {
+    if (!user || !userId || userId === '' || !db) {
       setLoading(false);
       return;
     }
@@ -51,19 +52,20 @@ export const useUserData = (userId: string) => {
     );
 
     return () => unsubscribe();
-  }, [userId]);
+  }, [user, userId]);
 
   return { userData, loading, error };
 };
 
 // Hook for real-time patient data
 export const usePatientData = (patientId: string) => {
+  const { user } = useAuth();
   const [patientData, setPatientData] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!patientId || !db) {
+    if (!user || !patientId || patientId === '' || !db) {
       setLoading(false);
       return;
     }
@@ -86,19 +88,20 @@ export const usePatientData = (patientId: string) => {
     );
 
     return () => unsubscribe();
-  }, [patientId]);
+  }, [user, patientId]);
 
   return { patientData, loading, error };
 };
 
 // Hook for real-time clinic data
 export const useClinicData = (clinicId: string) => {
+  const { user } = useAuth();
   const [clinicData, setClinicData] = useState<Clinic | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!clinicId || !db) {
+    if (!user || !clinicId || clinicId === '' || !db) {
       setLoading(false);
       return;
     }
@@ -121,19 +124,20 @@ export const useClinicData = (clinicId: string) => {
     );
 
     return () => unsubscribe();
-  }, [clinicId]);
+  }, [user, clinicId]);
 
   return { clinicData, loading, error };
 };
 
 // Hook for real-time subscription data
 export const useSubscriptionData = (subscriptionId: string) => {
+  const { user } = useAuth();
   const [subscriptionData, setSubscriptionData] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!subscriptionId || !db) {
+    if (!user || !subscriptionId || subscriptionId === '' || !db) {
       setLoading(false);
       return;
     }
@@ -156,19 +160,20 @@ export const useSubscriptionData = (subscriptionId: string) => {
     );
 
     return () => unsubscribe();
-  }, [subscriptionId]);
+  }, [user, subscriptionId]);
 
   return { subscriptionData, loading, error };
 };
 
 // Hook for real-time activity feed
 export const useActivityFeed = (clinicId?: string, limitCount: number = 10) => {
+  const { user } = useAuth();
   const [activities, setActivities] = useState<ActivityFeed[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!db) {
+    if (!user || !db) {
       setLoading(false);
       return;
     }
@@ -210,19 +215,20 @@ export const useActivityFeed = (clinicId?: string, limitCount: number = 10) => {
     );
 
     return () => unsubscribe();
-  }, [clinicId, limitCount]);
+  }, [user, clinicId, limitCount]);
 
   return { activities, loading, error };
 };
 
 // Hook for real-time new patient signups (for clinics and admin)
 export const useNewSignups = (clinicId?: string, limitCount: number = 5) => {
+  const { user } = useAuth();
   const [newSignups, setNewSignups] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!db) {
+    if (!user || !db) {
       setLoading(false);
       return;
     }
@@ -264,7 +270,7 @@ export const useNewSignups = (clinicId?: string, limitCount: number = 5) => {
     );
 
     return () => unsubscribe();
-  }, [clinicId, limitCount]);
+  }, [user, clinicId, limitCount]);
 
   return { newSignups, loading, error };
 };
@@ -574,12 +580,13 @@ export function useClinicAppointments(clinicId: string, limitCount: number = 10)
 
 // Real-time hook for clinic patients
 export function useClinicPatients(clinicId: string, limitCount: number = 10) {
+  const { user } = useAuth();
   const [patients, setPatients] = useState<RealTimePatient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!clinicId) {
+    if (!user || !clinicId) {
       setLoading(false);
       return;
     }
@@ -616,7 +623,7 @@ export function useClinicPatients(clinicId: string, limitCount: number = 10) {
     );
 
     return () => unsubscribe();
-  }, [clinicId, limitCount]);
+  }, [user, clinicId, limitCount]);
 
   return { patients, loading, error };
 }
@@ -672,6 +679,7 @@ export function useClinicInsuranceClaims(clinicId: string, limitCount: number = 
 
 // Real-time hook for clinic statistics
 export function useClinicDashboardStats(clinicId: string) {
+  const { user } = useAuth();
   const [stats, setStats] = useState<ClinicStats>({
     totalPatients: 0,
     appointmentsToday: 0,
@@ -685,7 +693,7 @@ export function useClinicDashboardStats(clinicId: string) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!clinicId) {
+    if (!user || !clinicId) {
       setLoading(false);
       return;
     }
@@ -823,7 +831,7 @@ export function useClinicDashboardStats(clinicId: string) {
     return () => {
       unsubscribers.forEach(unsubscribe => unsubscribe());
     };
-  }, [clinicId]);
+  }, [user, clinicId]);
 
   return { stats, loading, error };
 }

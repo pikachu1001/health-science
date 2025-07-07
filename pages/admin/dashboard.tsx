@@ -34,7 +34,7 @@ interface SubscriptionPlan {
 }
 
 export default function AdminDashboard() {
-  const { user, loading, userData } = useAuth();
+  const { user, loading, userData, logout } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,32 +47,6 @@ export default function AdminDashboard() {
   // Real-time subscriptions (for plan stats)
   const { subscriptions, loading: subsLoading, error: subsError } = useSubscriptionStatus();
 
-  const [subscriptionPlans] = useState<SubscriptionPlan[]>([
-    {
-      id: '1',
-      name: 'プランA',
-      price: 3000,
-      features: ['Basic Health Coverage', 'Online Consultations'],
-      activeSubscribers: 500,
-      status: 'active',
-    },
-    {
-      id: '2',
-      name: 'プランB',
-      price: 4000,
-      features: ['Extended Coverage', 'Priority Appointments'],
-      activeSubscribers: 300,
-      status: 'active',
-    },
-    {
-      id: '3',
-      name: 'プランC',
-      price: 5000,
-      features: ['Premium Coverage', '24/7 Support'],
-      activeSubscribers: 200,
-      status: 'active',
-    },
-  ]);
 
   const navigationItems = [
     { name: 'ダッシュボード', href: '/admin/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -82,6 +56,17 @@ export default function AdminDashboard() {
     { name: '保険請求', href: '/admin/insurance-claims', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
     { name: 'システム設定', href: '/admin/settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if logout fails, redirect to home
+      router.push('/');
+    }
+  };
 
   useEffect(() => {
     if (!loading && (!user || userData?.role !== 'admin')) {
@@ -143,11 +128,7 @@ export default function AdminDashboard() {
               </div>
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => {
-                    localStorage.removeItem('adminToken');
-                    sessionStorage.removeItem('adminData');
-                    router.push('/');
-                  }}
+                  onClick={handleLogout}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                 >
                   ログアウト
