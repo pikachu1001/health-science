@@ -36,7 +36,7 @@ export interface Patient {
 // Data for a clinic, stored in 'clinics' collection
 export interface Clinic {
   clinicId: string;
-  name: string;
+  clinicName: string;
   email: string;
   baseFeeStatus: '有効' | '未払い' | '停止中' | '保留中';
   referredPatients: string[];

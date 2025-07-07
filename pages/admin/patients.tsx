@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
+import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { useAllClinics } from '../../lib/real-time-hooks';
 
 interface Patient {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phoneNumber: string;
   dateOfBirth: string;
@@ -14,8 +18,65 @@ interface Patient {
   insuranceProvider: string;
   lastVisit: string;
   status: 'active' | 'inactive';
-  registeredClinic: string;
+  clinicId: string;
 }
+
+interface Subscription {
+  subscriptionId: string;
+  patientId: string;
+  status: 'active' | 'cancelled' | 'past_due';
+  plan: string;
+}
+
+function useAllPatients() {
+  const [patients, setPatients] = useState<Patient[]>([]);
+  useEffect(() => {
+    if (!db) return;
+    const unsubscribe = onSnapshot(collection(db, 'patients'), (snapshot) => {
+      const data: Patient[] = snapshot.docs.map(docSnap => {
+        const d = docSnap.data();
+        return {
+          id: docSnap.id,
+          firstName: d.firstName || '',
+          lastName: d.lastName || '',
+          email: d.email || '',
+          phoneNumber: d.phoneNumber || '',
+          dateOfBirth: d.dateOfBirth || '',
+          gender: d.gender || 'other',
+          subscriptionPlan: d.subscriptionPlan || '',
+          insuranceProvider: d.insuranceProvider || '',
+          lastVisit: d.lastVisit || '',
+          status: d.status || 'inactive',
+          clinicId: d.clinicId || '',
+        };
+      });
+      setPatients(data);
+    });
+    return () => unsubscribe();
+  }, []);
+  return patients;
+}
+
+const useAllSubscriptions = () => {
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  useEffect(() => {
+    if (!db) return;
+    const unsubscribe = onSnapshot(collection(db, 'subscriptions'), (snapshot) => {
+      const data: Subscription[] = snapshot.docs.map(docSnap => {
+        const d = docSnap.data();
+        return {
+          subscriptionId: docSnap.id,
+          patientId: d.patientId || '',
+          status: d.status || 'cancelled',
+          plan: d.plan || '',
+        };
+      });
+      setSubscriptions(data);
+    });
+    return () => unsubscribe();
+  }, []);
+  return subscriptions;
+};
 
 export default function PatientsPage() {
   const { user, loading, userData, logout } = useAuth();
@@ -25,47 +86,29 @@ export default function PatientsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [planFilter, setPlanFilter] = useState<string>('all');
 
-  const [patients] = useState<Patient[]>([
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      phoneNumber: '+81 90-1234-5678',
-      dateOfBirth: '1990-01-01',
-      gender: 'male',
-      subscriptionPlan: 'Plan A',
-      insuranceProvider: 'Japan Health Insurance',
-      lastVisit: '2024-02-15',
-      status: 'active',
-      registeredClinic: 'Tokyo Medical Center',
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      phoneNumber: '+81 90-8765-4321',
-      dateOfBirth: '1985-05-15',
-      gender: 'female',
-      subscriptionPlan: 'Plan B',
-      insuranceProvider: 'Osaka Health Insurance',
-      lastVisit: '2024-02-10',
-      status: 'active',
-      registeredClinic: 'Osaka Health Clinic',
-    },
-    {
-      id: '3',
-      name: 'Yuki Tanaka',
-      email: 'yuki.tanaka@example.com',
-      phoneNumber: '+81 90-2468-1357',
-      dateOfBirth: '1995-08-20',
-      gender: 'female',
-      subscriptionPlan: 'Plan C',
-      insuranceProvider: 'Kyoto Health Insurance',
-      lastVisit: '2024-01-20',
-      status: 'inactive',
-      registeredClinic: 'Kyoto Wellness Center',
-    },
-  ]);
+  const patients = useAllPatients();
+  const { clinics } = useAllClinics();
+  const subscriptions = useAllSubscriptions();
+
+  // Helper to get subscription status for a patient
+  const getSubscriptionStatus = (patientId: string) => {
+    const sub = subscriptions.find((s: Subscription) => s.patientId === patientId);
+    if (sub) {
+      if (sub.status === 'active') return '有効';
+      if (sub.status === 'past_due') return '未払い';
+      if (sub.status === 'cancelled') return 'キャンセル';
+      return sub.status;
+    }
+    return '未加入';
+  };
+
+  // Modal state
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState<any>({});
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState('');
 
   useEffect(() => {
     if (!loading && (!user || userData?.role !== 'admin')) {
@@ -88,13 +131,74 @@ export default function PatientsPage() {
     return <div>Loading...</div>;
   }
 
+  // Modal handlers
+  const openDetailsModal = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setShowDetailsModal(true);
+  };
+  const openEditModal = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setEditForm({ ...patient });
+    setShowEditModal(true);
+    setEditError('');
+  };
+  const closeDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedPatient(null);
+  };
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setSelectedPatient(null);
+    setEditForm({});
+    setEditError('');
+  };
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditLoading(true);
+    setEditError('');
+    if (!db) {
+      setEditError('データベース接続がありません');
+      setEditLoading(false);
+      return;
+    }
+    try {
+      const patientRef = doc(db, 'patients', selectedPatient!.id);
+      await updateDoc(patientRef, {
+        firstName: editForm.firstName,
+        lastName: editForm.lastName,
+        email: editForm.email,
+        dateOfBirth: editForm.dateOfBirth,
+        clinicId: editForm.clinicId,
+      });
+      setEditLoading(false);
+      setShowEditModal(false);
+    } catch (err: any) {
+      setEditError('更新に失敗しました: ' + (err.message || err));
+      setEditLoading(false);
+    }
+  };
+
   const filteredPatients = patients.filter(patient => {
-    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || patient.status === statusFilter;
-    const matchesPlan = planFilter === 'all' || patient.subscriptionPlan === planFilter;
+    const matchesSearch = (patient.lastName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (patient.firstName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (patient.email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+    const subscriptionStatus = getSubscriptionStatus(patient.id);
+    const matchesStatus = statusFilter === 'all' || subscriptionStatus === statusFilter;
+    const subscription = subscriptions.find(s => s.patientId === patient.id);
+    const matchesPlan = planFilter === 'all' || (subscription && subscription.plan === planFilter);
     return matchesSearch && matchesStatus && matchesPlan;
   });
+
+  // Helper to get clinic name by ID (with fallback)
+  const getClinicName = (clinicId: string) => {
+    const clinic = clinics.find(c => c.clinicId === clinicId);
+    if (clinic) return clinic.clinicName ;
+    if (clinicId) return clinicId;
+    return '未登録';
+  };
 
   const navigationItems = [
     { name: 'ダッシュボード', href: '/admin/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -194,8 +298,10 @@ export default function PatientsPage() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
                   <option value="all">すべてのステータス</option>
-                  <option value="active">有効</option>
-                  <option value="inactive">無効</option>
+                  <option value="有効">有効</option>
+                  <option value="未払い">未払い</option>
+                  <option value="キャンセル">キャンセル</option>
+                  <option value="未加入">未加入</option>
                 </select>
               </div>
               <div>
@@ -209,9 +315,9 @@ export default function PatientsPage() {
                   onChange={(e) => setPlanFilter(e.target.value)}
                 >
                   <option value="all">すべてのプラン</option>
-                  <option value="Plan A">プランA</option>
-                  <option value="Plan B">プランB</option>
-                  <option value="Plan C">プランC</option>
+                  {Array.from(new Set(subscriptions.map(s => s.plan).filter(Boolean))).map(plan => (
+                    <option key={plan} value={plan}>{plan}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -224,7 +330,6 @@ export default function PatientsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">患者情報</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">連絡先</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">サブスクリプション</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">保険</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">クリニック</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
@@ -234,7 +339,7 @@ export default function PatientsPage() {
                   {filteredPatients.map((patient) => (
                     <tr key={patient.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{patient.name}</div>
+                        <div className="text-sm font-medium text-gray-900">{patient.lastName} {patient.firstName}</div>
                         <div className="text-sm text-gray-500">
                           {patient.gender === 'male' ? '男性' : patient.gender === 'female' ? '女性' : 'その他'} ・ {patient.dateOfBirth}
                         </div>
@@ -247,29 +352,31 @@ export default function PatientsPage() {
                         <div className="text-sm text-gray-900">{planNameMap[patient.subscriptionPlan] || patient.subscriptionPlan}</div>
                         <div className="text-sm text-gray-500">最終受診日: {patient.lastVisit}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {patient.insuranceProvider}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${patient.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                          {patient.status === 'active' ? '有効' : '無効'}
-                        </span>
+                      <td className={
+                        getSubscriptionStatus(patient.id) === '有効' ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800' :
+                        getSubscriptionStatus(patient.id) === '未払い' ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800' :
+                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800'
+                      }>
+                        {getSubscriptionStatus(patient.id)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {patient.registeredClinic}
+                        {getClinicName(patient.clinicId)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
-                          className="text-blue-600 hover:text-blue-900 mr-4"
-                          onClick={() => router.push(`/admin/patients/${patient.id}`)}
+                          className="inline-flex items-center px-3 py-1 mr-2 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                          onClick={() => openDetailsModal(patient)}
+                          aria-label="詳細"
                         >
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                           詳細
                         </button>
                         <button
-                          className="text-blue-600 hover:text-blue-900"
-                          onClick={() => router.push(`/admin/patients/${patient.id}/edit`)}
+                          className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                          onClick={() => openEditModal(patient)}
+                          aria-label="編集"
                         >
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5h2m-1 0v14m-7-7h14" /></svg>
                           編集
                         </button>
                       </td>
@@ -281,6 +388,69 @@ export default function PatientsPage() {
           </div>
         </div>
       </div>
+
+      {showDetailsModal && selectedPatient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-xl relative animate-fade-in">
+            <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-3xl font-bold transition" onClick={closeDetailsModal} aria-label="閉じる">×</button>
+            <h2 className="text-2xl font-extrabold mb-8 text-center tracking-wide">患者詳細</h2>
+            <div className="space-y-4 text-base">
+              <div className="flex"><span className="font-semibold w-32">氏名:</span><span className="ml-2">{selectedPatient.lastName} {selectedPatient.firstName}</span></div>
+              <div className="flex"><span className="font-semibold w-32">生年月日:</span><span className="ml-2">{selectedPatient.dateOfBirth}</span></div>
+              <div className="flex"><span className="font-semibold w-32">メール:</span><span className="ml-2">{selectedPatient.email}</span></div>
+              <div className="flex"><span className="font-semibold w-32">クリニック:</span><span className="ml-2">{getClinicName(selectedPatient.clinicId)}</span></div>
+              <div className="flex"><span className="font-semibold w-32">ステータス:</span><span className={
+                'ml-2 ' + (getSubscriptionStatus(selectedPatient.id) === '有効' ? 'text-green-600 font-semibold' :
+                getSubscriptionStatus(selectedPatient.id) === '未払い' ? 'text-yellow-600 font-semibold' :
+                'text-gray-600 font-semibold')
+              }>{getSubscriptionStatus(selectedPatient.id)}</span></div>
+            </div>
+            <div className="flex justify-end mt-10">
+              <button className="px-7 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 font-semibold text-base transition" onClick={closeDetailsModal}>閉じる</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showEditModal && selectedPatient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-xl relative animate-fade-in">
+            <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-3xl font-bold transition" onClick={closeEditModal} aria-label="閉じる">×</button>
+            <h2 className="text-2xl font-extrabold mb-8 text-center tracking-wide">患者編集</h2>
+            <form onSubmit={handleEditSubmit} className="space-y-6">
+              <div>
+                <label className="block text-base font-semibold mb-2">姓</label>
+                <input type="text" name="lastName" value={editForm.lastName || ''} onChange={handleEditChange} className="block w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-blue-500 focus:border-blue-500 text-base" />
+              </div>
+              <div>
+                <label className="block text-base font-semibold mb-2">名</label>
+                <input type="text" name="firstName" value={editForm.firstName || ''} onChange={handleEditChange} className="block w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-blue-500 focus:border-blue-500 text-base" />
+              </div>
+              <div>
+                <label className="block text-base font-semibold mb-2">生年月日</label>
+                <input type="date" name="dateOfBirth" value={editForm.dateOfBirth || ''} onChange={handleEditChange} className="block w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-blue-500 focus:border-blue-500 text-base" />
+              </div>
+              <div>
+                <label className="block text-base font-semibold mb-2">メール</label>
+                <input type="email" name="email" value={editForm.email || ''} onChange={handleEditChange} className="block w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-blue-500 focus:border-blue-500 text-base" />
+              </div>
+              <div>
+                <label className="block text-base font-semibold mb-2">クリニック</label>
+                <select name="clinicId" value={editForm.clinicId || ''} onChange={handleEditChange} className="block w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-blue-500 focus:border-blue-500 text-base">
+                  <option value="">クリニックを選択</option>
+                  {clinics.map(clinic => (
+                    <option key={clinic.clinicId} value={clinic.clinicId}>{clinic.clinicName}</option>
+                  ))}
+                </select>
+              </div>
+              {editError && <div className="text-red-500 text-base text-center">{editError}</div>}
+              <div className="flex justify-end space-x-4 pt-6">
+                <button type="button" className="px-7 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 focus:ring-2 focus:ring-gray-400 font-semibold text-base transition" onClick={closeEditModal}>キャンセル</button>
+                <button type="submit" className="px-7 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 font-semibold text-base transition" disabled={editLoading}>{editLoading ? '保存中...' : '保存'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

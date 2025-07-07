@@ -9,7 +9,7 @@ import { db } from '../../lib/firebase';
 interface Clinic {
   id: string;
   name: string;
-  status: 'active' | '保留中' | '一時停止中';
+  status: 'active' | '保留中' | '一時停止中' | 'pending';
   address?: string;
   specialties: string[];
   patientCount: number;
@@ -56,6 +56,14 @@ export default function ClinicsPage() {
   const { clinics, loading: clinicsLoading, error: clinicsError } = useAllClinics();
   const patientCounts = usePatientCountsByClinic();
 
+  const statusDisplayMap: { [key: string]: string } = {
+    'active': '有効',
+    '保留中': '承認待ち',
+    '一時停止中': '停止中',
+    'pending': '承認待ち',
+    '停止中': '停止中',
+  };
+
   useEffect(() => {
     if (!loading && (!user || userData?.role !== 'admin')) {
       router.replace('/auth/admin/login');
@@ -97,7 +105,8 @@ export default function ClinicsPage() {
   const filteredClinics = mappedClinics.filter(clinic => {
     const name = clinic.name || '';
     const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || clinic.status === statusFilter;
+    const displayStatus = statusDisplayMap[clinic.status] || clinic.status;
+    const matchesStatus = statusFilter === 'all' || displayStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -246,18 +255,10 @@ export default function ClinicsPage() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
                   <option value="all">すべてのステータス</option>
-                  <option value="active">有効</option>
-                  <option value="保留中">承認待ち</option>
-                  <option value="一時停止中">停止中</option>
+                  <option value="有効">有効</option>
+                  <option value="承認待ち">承認待ち</option>
+                  <option value="停止中">停止中</option>
                 </select>
-              </div>
-              <div className="flex items-end">
-                <button
-                  onClick={() => router.push('/admin/clinics/new')}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  新しいクリニックを追加
-                </button>
               </div>
             </div>
 
@@ -285,10 +286,10 @@ export default function ClinicsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.address}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clinic.status === 'active' ? 'bg-green-100 text-green-800' :
-                          clinic.status === '保留中' ? 'bg-yellow-100 text-yellow-800' :
+                          clinic.status === '保留中' || clinic.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-800'
                           }`}>
-                          {clinic.status === 'active' ? '有効' : clinic.status === '保留中' ? '承認待ち' : '停止中'}
+                          {statusDisplayMap[clinic.status] || '不明'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

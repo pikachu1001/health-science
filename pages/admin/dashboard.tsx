@@ -360,7 +360,7 @@ export default function AdminDashboard() {
                         <tr><td colSpan={6} className="text-center py-4">クリニックが見つかりません。</td></tr>
                       ) : clinics.map((clinic) => (
                         <tr key={clinic.clinicId}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{clinic.name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{clinic.clinicName}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.email}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
