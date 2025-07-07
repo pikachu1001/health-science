@@ -4,6 +4,8 @@ import Link from 'next/link';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSystemStats, useAllClinics, useActivityFeed, useSubscriptionStatus } from '../../lib/real-time-hooks';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 
 interface SystemStats {
   totalClinics: number;
@@ -33,6 +35,27 @@ interface SubscriptionPlan {
   status: 'active' | 'inactive';
 }
 
+// Helper hook to get patient counts for all clinics
+function usePatientCountsByClinic() {
+  const [counts, setCounts] = useState<{ [clinicId: string]: number }>({});
+  useEffect(() => {
+    if (!db) return;
+    const unsubscribe = onSnapshot(collection(db, 'patients'), (snapshot) => {
+      const newCounts: { [clinicId: string]: number } = {};
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const clinicId = data.clinicId;
+        if (clinicId) {
+          newCounts[clinicId] = (newCounts[clinicId] || 0) + 1;
+        }
+      });
+      setCounts(newCounts);
+    });
+    return () => unsubscribe();
+  }, []);
+  return counts;
+}
+
 export default function AdminDashboard() {
   const { user, loading, userData, logout } = useAuth();
   const router = useRouter();
@@ -47,6 +70,7 @@ export default function AdminDashboard() {
   // Real-time subscriptions (for plan stats)
   const { subscriptions, loading: subsLoading, error: subsError } = useSubscriptionStatus();
 
+  const patientCounts = usePatientCountsByClinic();
 
   const navigationItems = [
     { name: 'ダッシュボード', href: '/admin/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -319,7 +343,7 @@ export default function AdminDashboard() {
                               'bg-gray-200 text-gray-500'
                             }`}>{displayStatus(clinic.baseFeeStatus)}</span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.referredPatients ? clinic.referredPatients.length : 0}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{patientCounts[clinic.clinicId] || 0}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{displayStatus(clinic.baseFeeStatus)}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <button
@@ -345,16 +369,29 @@ export default function AdminDashboard() {
                       <li className="py-4 text-center">読み込み中...</li>
                     ) : activities.length === 0 ? (
                       <li className="py-4 text-center">最近のアクティビティはありません。</li>
-                    ) : activities.map(activity => (
-                      <li key={activity.activityId} className="px-6 py-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="font-medium">{activity.type}</span>: {activity.message}
+                    ) : activities.map(activity => {
+                      let activityDate = '';
+                      if (activity.timestamp) {
+                        if (typeof activity.timestamp === 'string') {
+                          // Try to parse string date
+                          const d = new Date(activity.timestamp);
+                          activityDate = isNaN(d.getTime()) ? '' : d.toLocaleString();
+                        } else if (activity.timestamp.toDate) {
+                          // Firestore Timestamp
+                          activityDate = activity.timestamp.toDate().toLocaleString();
+                        }
+                      }
+                      return (
+                        <li key={activity.activityId} className="px-6 py-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="font-medium">{activity.type}</span>: {activity.message}
+                            </div>
+                            <div className="text-xs text-gray-400">{activityDate}</div>
                           </div>
-                          <div className="text-xs text-gray-400">{activity.timestamp?.toDate ? activity.timestamp.toDate().toLocaleString() : ''}</div>
-                        </div>
-                      </li>
-                    ))}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               </div>
