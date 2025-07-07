@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAllClinics } from '../../lib/real-time-hooks';
+import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 
 interface Clinic {
   id: string;
   name: string;
   status: 'active' | '保留中' | '一時停止中';
-  location: string;
+  address?: string;
   specialties: string[];
   patientCount: number;
   subscriptionStatus: 'active' | 'expired';
@@ -16,51 +19,42 @@ interface Clinic {
   registrationDate: string;
 }
 
+// Helper hook to get patient counts for all clinics
+function usePatientCountsByClinic() {
+  const [counts, setCounts] = useState<{ [clinicId: string]: number }>({});
+  useEffect(() => {
+    if (!db) return;
+    const unsubscribe = onSnapshot(collection(db, 'patients'), (snapshot) => {
+      const newCounts: { [clinicId: string]: number } = {};
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const clinicId = data.clinicId;
+        if (clinicId) {
+          newCounts[clinicId] = (newCounts[clinicId] || 0) + 1;
+        }
+      });
+      setCounts(newCounts);
+    });
+    return () => unsubscribe();
+  }, []);
+  return counts;
+}
+
 export default function ClinicsPage() {
   const { user, loading, userData, logout } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedClinic, setSelectedClinic] = useState<any | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState<any>({});
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState('');
 
-  const [clinics] = useState<Clinic[]>([
-    {
-      id: '1',
-      name: 'Tokyo Medical Center',
-      status: 'active',
-      location: 'Tokyo, Japan',
-      specialties: ['General Medicine', 'Cardiology'],
-      patientCount: 250,
-      subscriptionStatus: 'active',
-      contactEmail: 'contact@tokyomedical.com',
-      contactPhone: '+81 3-1234-5678',
-      registrationDate: '2024-01-15',
-    },
-    {
-      id: '2',
-      name: 'Osaka Health Clinic',
-      status: '保留中',
-      location: 'Osaka, Japan',
-      specialties: ['Pediatrics', 'Dermatology'],
-      patientCount: 180,
-      subscriptionStatus: 'active',
-      contactEmail: 'info@osakahealth.com',
-      contactPhone: '+81 6-1234-5678',
-      registrationDate: '2024-02-01',
-    },
-    {
-      id: '3',
-      name: 'Kyoto Wellness Center',
-      status: '一時停止中',
-      location: 'Kyoto, Japan',
-      specialties: ['Alternative Medicine', 'Physical Therapy'],
-      patientCount: 120,
-      subscriptionStatus: 'expired',
-      contactEmail: 'support@kyotowellness.com',
-      contactPhone: '+81 75-1234-5678',
-      registrationDate: '2024-01-20',
-    },
-  ]);
+  const { clinics, loading: clinicsLoading, error: clinicsError } = useAllClinics();
+  const patientCounts = usePatientCountsByClinic();
 
   useEffect(() => {
     if (!loading && (!user || userData?.role !== 'admin')) {
@@ -79,13 +73,30 @@ export default function ClinicsPage() {
     }
   };
 
-  if (loading || !user || userData?.role !== 'admin') {
+  if (loading || !user || userData?.role !== 'admin' || clinicsLoading) {
     return <div>Loading...</div>;
   }
 
-  const filteredClinics = clinics.filter(clinic => {
-    const matchesSearch = clinic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      clinic.location.toLowerCase().includes(searchTerm.toLowerCase());
+  if (clinicsError) {
+    return <div className="text-red-500">クリニックデータの取得中にエラーが発生しました: {clinicsError}</div>;
+  }
+
+  const mappedClinics = clinics.map(clinic => ({
+    id: clinic.clinicId,
+    name: (clinic as any).clinicName || '',
+    status: clinic.baseFeeStatus === '有効' ? 'active' : clinic.baseFeeStatus === '保留中' ? '保留中' : clinic.baseFeeStatus === '停止中' ? '一時停止中' : clinic.baseFeeStatus,
+    address: (clinic as any).address || '',
+    specialties: [],
+    patientCount: patientCounts[clinic.clinicId] || 0,
+    subscriptionStatus: 'active',
+    contactEmail: clinic.email,
+    contactPhone: '',
+    registrationDate: clinic.createdAt && clinic.createdAt.toDate ? clinic.createdAt.toDate().toISOString().slice(0, 10) : '',
+  }));
+
+  const filteredClinics = mappedClinics.filter(clinic => {
+    const name = clinic.name || '';
+    const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || clinic.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -98,6 +109,60 @@ export default function ClinicsPage() {
     { name: '保険請求', href: '/admin/insurance-claims', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
     { name: 'システム設定', href: '/admin/settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
   ];
+
+  // Modal open handlers
+  const openDetailsModal = (clinic: any) => {
+    setSelectedClinic(clinic);
+    setShowDetailsModal(true);
+  };
+  const openEditModal = (clinic: any) => {
+    setSelectedClinic(clinic);
+    setEditForm({ ...clinic });
+    setShowEditModal(true);
+    setEditError('');
+  };
+  // Modal close handlers
+  const closeDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedClinic(null);
+  };
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setSelectedClinic(null);
+    setEditForm({});
+    setEditError('');
+  };
+
+  // Edit form change handler
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  // Edit form submit handler
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditLoading(true);
+    setEditError('');
+    if (!db) {
+      setEditError('データベース接続がありません');
+      setEditLoading(false);
+      return;
+    }
+    try {
+      const clinicRef = doc(db, 'clinics', selectedClinic.id);
+      await updateDoc(clinicRef, {
+        clinicName: editForm.name,
+        address: editForm.address,
+        email: editForm.contactEmail,
+        // Add more fields as needed
+      });
+      setEditLoading(false);
+      setShowEditModal(false);
+    } catch (err: any) {
+      setEditError('更新に失敗しました: ' + (err.message || err));
+      setEditLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -217,7 +282,7 @@ export default function ClinicsPage() {
                         <div className="text-sm font-medium text-gray-900">{clinic.name}</div>
                         <div className="text-sm text-gray-500">{clinic.specialties.join(', ')}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.location}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{clinic.address}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clinic.status === 'active' ? 'bg-green-100 text-green-800' :
                           clinic.status === '保留中' ? 'bg-yellow-100 text-yellow-800' :
@@ -240,13 +305,13 @@ export default function ClinicsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           className="text-blue-600 hover:text-blue-900 mr-4"
-                          onClick={() => router.push(`/admin/clinics/${clinic.id}`)}
+                          onClick={() => openDetailsModal(clinic)}
                         >
                           詳細
                         </button>
                         <button
                           className="text-blue-600 hover:text-blue-900"
-                          onClick={() => router.push(`/admin/clinics/${clinic.id}/edit`)}
+                          onClick={() => openEditModal(clinic)}
                         >
                           編集
                         </button>
@@ -259,6 +324,91 @@ export default function ClinicsPage() {
           </div>
         </div>
       </div>
+
+      {showDetailsModal && selectedClinic && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm transition-opacity">
+          <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl p-8 w-full max-w-lg relative animate-slide-fade-in">
+            <button className="absolute top-3 right-3 text-gray-400 hover:text-blue-600 text-2xl font-bold transition" onClick={closeDetailsModal} aria-label="閉じる">×</button>
+            <h2 className="text-2xl font-bold mb-6 text-center text-blue-700 flex items-center justify-center">
+              <svg className="w-7 h-7 mr-2 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 3H8a2 2 0 00-2 2v0a2 2 0 002 2h8a2 2 0 002-2v0a2 2 0 00-2-2z" /></svg>
+              クリニック詳細
+            </h2>
+            <div className="space-y-3">
+              <div className="flex items-center text-lg font-bold text-gray-800">
+                <svg className="w-5 h-5 mr-2 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                {selectedClinic.name}
+              </div>
+              <hr className="my-2" />
+              <div className="flex items-center">
+                <svg className="w-5 h-5 mr-2 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" /></svg>
+                <span className="font-semibold">所在地:</span> {selectedClinic.address}
+              </div>
+              <div className="flex items-center">
+                <svg className="w-5 h-5 mr-2 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 01-8 0 4 4 0 018 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14v7m0 0H9m3 0h3" /></svg>
+                <span className="font-semibold">連絡先:</span> {selectedClinic.contactEmail}
+              </div>
+              <div className="flex items-center">
+                <svg className="w-5 h-5 mr-2 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                <span className="font-semibold">患者数:</span> {selectedClinic.patientCount}
+              </div>
+              <div className="flex items-center">
+                <svg className="w-5 h-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" /></svg>
+                <span className="font-semibold">サブスクリプション:</span> {selectedClinic.subscriptionStatus === 'active' ? <span className="text-green-600 font-semibold">有効</span> : <span className="text-red-600 font-semibold">期限切れ</span>}
+              </div>
+              <div className="flex items-center">
+                <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <span className="font-semibold">登録日:</span> {selectedClinic.registrationDate}
+              </div>
+            </div>
+            <div className="flex justify-end mt-8">
+              <button className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold" onClick={closeDetailsModal}>閉じる</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showEditModal && selectedClinic && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm transition-opacity">
+          <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl p-8 w-full max-w-lg relative animate-slide-fade-in">
+            <button className="absolute top-3 right-3 text-gray-400 hover:text-blue-600 text-2xl font-bold transition" onClick={closeEditModal} aria-label="閉じる">×</button>
+            <h2 className="text-2xl font-bold mb-6 text-center text-blue-700 flex items-center justify-center">
+              <svg className="w-7 h-7 mr-2 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              クリニック編集
+            </h2>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div className="relative">
+                <label className="block text-sm font-semibold mb-1">クリニック名</label>
+                <span className="absolute left-3 top-9 text-blue-400 pointer-events-none">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                </span>
+                <input type="text" name="name" value={editForm.name || ''} onChange={handleEditChange} required className={`block w-full border ${!editForm.name ? 'border-red-400' : 'border-gray-300'} rounded-lg px-9 py-2 focus:ring-blue-500 focus:border-blue-500`} />
+              </div>
+              <div className="relative">
+                <label className="block text-sm font-semibold mb-1">所在地</label>
+                <span className="absolute left-3 top-9 text-green-400 pointer-events-none">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" /></svg>
+                </span>
+                <input type="text" name="address" value={editForm.address || ''} onChange={handleEditChange} required className={`block w-full border ${!editForm.address ? 'border-red-400' : 'border-gray-300'} rounded-lg px-9 py-2 focus:ring-blue-500 focus:border-blue-500`} />
+              </div>
+              <div className="relative">
+                <label className="block text-sm font-semibold mb-1">連絡先</label>
+                <span className="absolute left-3 top-9 text-purple-400 pointer-events-none">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 01-8 0 4 4 0 018 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14v7m0 0H9m3 0h3" /></svg>
+                </span>
+                <input type="text" name="contactEmail" value={editForm.contactEmail || ''} onChange={handleEditChange} required className={`block w-full border ${!editForm.contactEmail ? 'border-red-400' : 'border-gray-300'} rounded-lg px-9 py-2 focus:ring-blue-500 focus:border-blue-500`} />
+              </div>
+              {/* Add more fields as needed */}
+              {editError && <div className="text-red-500 text-sm text-center">{editError}</div>}
+              <div className="flex justify-end space-x-3 pt-4">
+                <button type="button" className="px-5 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition font-semibold" onClick={closeEditModal}>キャンセル</button>
+                <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold flex items-center justify-center min-w-[80px]" disabled={editLoading}>
+                  {editLoading && <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>}
+                  {editLoading ? '保存中...' : '保存'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
