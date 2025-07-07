@@ -79,7 +79,6 @@ export default function AdminDashboard() {
     { name: '患者', href: '/admin/patients', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
     { name: 'サブスクリプションプラン', href: '/admin/subscriptions', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
     { name: '保険請求', href: '/admin/insurance-claims', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { name: 'システム設定', href: '/admin/settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
   ];
 
   const handleLogout = async () => {
@@ -103,29 +102,9 @@ export default function AdminDashboard() {
     return <div>Loading...</div>;
   }
 
-  // Compute real-time plan stats
-  const planStats = [
-    { id: 'A', name: 'Plan A', price: 3000, features: ['Basic Health Coverage', 'Online Consultations'] },
-    { id: 'B', name: 'Plan B', price: 4000, features: ['Extended Coverage', 'Priority Appointments'] },
-    { id: 'C', name: 'Plan C', price: 5000, features: ['Premium Coverage', '24/7 Support'] },
-  ].map(plan => ({
-    ...plan,
-    activeSubscribers: subsLoading ? '...' : subscriptions.filter(s => s.plan === plan.id && s.status === 'active').length,
-  }));
-
   // Aggregate commission and admin revenue
   const totalClinicCommission = subsLoading ? 0 : subscriptions.reduce((sum, s) => sum + (s.clinicCommission || 0), 0);
   const totalAdminRevenue = subsLoading ? 0 : subscriptions.reduce((sum, s) => sum + (s.adminRevenue || 0), 0);
-
-  // Plan features translation
-  const planFeaturesMap: { [key: string]: string } = {
-    'Basic Health Coverage': '基本健康保険',
-    'Online Consultations': 'オンライン診療',
-    'Extended Coverage': '拡張保険',
-    'Priority Appointments': '優先予約',
-    'Premium Coverage': 'プレミアム保険',
-    '24/7 Support': '24時間サポート',
-  };
 
   // Mapping functions for Japanese display
   const displayStatus = (status: string) => {
@@ -134,11 +113,6 @@ export default function AdminDashboard() {
     if (status === 'unpaid') return '未払い';
     if (status === 'suspended') return '停止中';
     return status;
-  };
-  const planNameMap: { [key: string]: string } = {
-    'Plan A': 'プランA',
-    'Plan B': 'プランB',
-    'Plan C': 'プランC',
   };
 
   // Mapping for activity types to Japanese and UI details
@@ -441,56 +415,6 @@ export default function AdminDashboard() {
                       </button>
                     </div>
                   )}
-                </div>
-              </div>
-
-              {/* Real-time Subscription Plans */}
-              <div className="mt-8">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-bold text-gray-800 mt-8 mb-4">サブスクリプションプラン</h2>
-                  <button
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    onClick={() => router.push('/admin/subscriptions/new')}
-                  >
-                    新しいプランを追加
-                  </button>
-                </div>
-                <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {planStats.map((plan) => (
-                    <div key={plan.id} className="bg-white overflow-hidden shadow rounded-lg">
-                      <div className="p-5">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-medium text-gray-900">{planNameMap[plan.name] || plan.name}</h3>
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            有効
-                          </span>
-                        </div>
-                        <p className="mt-2 text-3xl font-bold text-gray-900">¥{plan.price.toLocaleString()}</p>
-                        <p className="mt-1 text-sm text-gray-500">月額</p>
-                        <ul className="mt-4 space-y-2">
-                          {plan.features.map((feature, index) => (
-                            <li key={index} className="flex items-start">
-                              <svg className="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              <span className="ml-2 text-sm text-gray-500">{planFeaturesMap[feature] || feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <div className="mt-4">
-                          <p className="text-sm text-gray-500">アクティブ契約者数: {plan.activeSubscribers}</p>
-                        </div>
-                        <div className="mt-4">
-                          <button
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            onClick={() => router.push(`/admin/subscriptions/${plan.id}/edit`)}
-                          >
-                            プランを編集
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>

@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
+import { collection, onSnapshot, addDoc, updateDoc, doc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 
 interface SubscriptionPlan {
   id: string;
   name: string;
   price: number;
+  priceId: string;
   features: string[];
   activeSubscribers: number;
   status: 'active' | 'inactive';
@@ -20,75 +23,33 @@ interface SubscriptionPlan {
 export default function SubscriptionsPage() {
   const { user, loading, userData, logout } = useAuth();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-
-  const [plans] = useState<SubscriptionPlan[]>([
-    {
-      id: '1',
-      name: 'プランA',
-      price: 3000,
-      features: [
-        '基本健康保険',
-        'オンライン診療',
-        '基本検査',
-        '処方サービス',
-      ],
-      activeSubscribers: 500,
-      status: 'active',
-      description: '個人および家族向けの基本健康保険',
-      billingCycle: 'monthly',
-      maxAppointments: 4,
-      maxPrescriptions: 2,
-      maxLabTests: 1,
-    },
-    {
-      id: '2',
-      name: 'プランB',
-      price: 4000,
-      features: [
-        '拡張保険',
-        '優先予約',
-        '高度な検査',
-        '処方無制限',
-        '24時間サポート',
-      ],
-      activeSubscribers: 300,
-      status: 'active',
-      description: '優先サービス付きの拡張保険',
-      billingCycle: 'monthly',
-      maxAppointments: 8,
-      maxPrescriptions: 4,
-      maxLabTests: 2,
-    },
-    {
-      id: '3',
-      name: 'プランC',
-      price: 5000,
-      features: [
-        'プレミアム保険',
-        '24時間サポート',
-        '予約無制限',
-        '処方無制限',
-        '総合検査',
-        '在宅ケアサービス',
-      ],
-      activeSubscribers: 200,
-      status: 'active',
-      description: '包括的なサービスを含むプレミアム保険',
-      billingCycle: 'monthly',
-      maxAppointments: -1, // Unlimited
-      maxPrescriptions: -1, // Unlimited
-      maxLabTests: 4,
-    },
-  ]);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState('');
+  const [modalForm, setModalForm] = useState<any>({
+    id: '', name: '', price: '', priceId: '', features: '', status: 'active', description: '', billingCycle: 'monthly', maxAppointments: '', maxPrescriptions: '', maxLabTests: '', activeSubscribers: 0
+  });
 
   useEffect(() => {
     if (!loading && (!user || userData?.role !== 'admin')) {
       router.replace('/auth/admin/login');
     }
   }, [user, loading, userData, router]);
+
+  useEffect(() => {
+    if (!db) return;
+    setIsLoading(true);
+    const unsub = onSnapshot(collection(db, 'subscriptionPlans'), (snapshot) => {
+      setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as SubscriptionPlan[]);
+      setIsLoading(false);
+    });
+    return () => unsub();
+  }, [db]);
 
   const handleLogout = async () => {
     try {
@@ -101,7 +62,7 @@ export default function SubscriptionsPage() {
     }
   };
 
-  if (loading || !user || userData?.role !== 'admin') {
+  if (loading || isLoading || !user || userData?.role !== 'admin') {
     return <div>Loading...</div>;
   }
 
@@ -117,9 +78,71 @@ export default function SubscriptionsPage() {
     { name: 'クリニック', href: '/admin/clinics', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
     { name: '患者', href: '/admin/patients', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
     { name: 'サブスクリプションプラン', href: '/admin/subscriptions', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { name: '保険請求', href: '/admin/insurance-claims', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { name: 'システム設定', href: '/admin/settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
   ];
+
+  // Open create modal
+  const openCreateModal = () => {
+    setEditMode(false);
+    setModalForm({ id: '', name: '', price: '', priceId: '', features: '', status: 'active', description: '', billingCycle: 'monthly', maxAppointments: '', maxPrescriptions: '', maxLabTests: '', activeSubscribers: 0 });
+    setShowModal(true);
+    setModalError('');
+  };
+  // Open edit modal
+  const openEditModal = (plan: SubscriptionPlan) => {
+    setEditMode(true);
+    setModalForm({
+      id: plan.id,
+      name: plan.name,
+      price: plan.price,
+      priceId: plan.priceId || '',
+      features: plan.features.join('\n'),
+      status: plan.status,
+      description: plan.description,
+      billingCycle: plan.billingCycle,
+      maxAppointments: plan.maxAppointments,
+      maxPrescriptions: plan.maxPrescriptions,
+      maxLabTests: plan.maxLabTests,
+      activeSubscribers: plan.activeSubscribers || 0
+    });
+    setShowModal(true);
+    setModalError('');
+  };
+  // Handle modal form change
+  const handleModalChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setModalForm({ ...modalForm, [e.target.name]: e.target.value });
+  };
+  // Handle modal submit
+  const handleModalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setModalLoading(true);
+    setModalError('');
+    try {
+      const planData = {
+        name: modalForm.name,
+        price: Number(modalForm.price),
+        priceId: modalForm.priceId,
+        features: modalForm.features.split('\n').map((f: string) => f.trim()).filter(Boolean),
+        status: modalForm.status,
+        description: modalForm.description,
+        billingCycle: modalForm.billingCycle,
+        maxAppointments: Number(modalForm.maxAppointments),
+        maxPrescriptions: Number(modalForm.maxPrescriptions),
+        maxLabTests: Number(modalForm.maxLabTests),
+        activeSubscribers: Number(modalForm.activeSubscribers) || 0
+      };
+      if (editMode) {
+        await updateDoc(doc(db!, 'subscriptionPlans', modalForm.id), planData);
+      } else {
+        await addDoc(collection(db!, 'subscriptionPlans'), planData);
+      }
+      setModalLoading(false);
+      setShowModal(false);
+      setModalForm({ id: '', name: '', price: '', priceId: '', features: '', status: 'active', description: '', billingCycle: 'monthly', maxAppointments: '', maxPrescriptions: '', maxLabTests: '', activeSubscribers: 0 });
+    } catch (err: any) {
+      setModalError('保存に失敗しました: ' + (err.message || err));
+      setModalLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -210,7 +233,7 @@ export default function SubscriptionsPage() {
               <div className="flex items-end">
                 <button
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  onClick={() => router.push('/admin/subscriptions/new')}
+                  onClick={openCreateModal}
                 >
                   新しいプランを追加
                 </button>
@@ -272,7 +295,7 @@ export default function SubscriptionsPage() {
                     </div>
 
                     <div className="mt-6">
-                      <p className="text-sm text-gray-500">Active Subscribers: {plan.activeSubscribers}</p>
+                      <span className="text-sm text-gray-600">アクティブ契約数：{plan.activeSubscribers}</span>
                     </div>
 
                     <div className="mt-6 flex space-x-3">
@@ -280,11 +303,11 @@ export default function SubscriptionsPage() {
                         onClick={() => router.push(`/admin/subscriptions/${plan.id}`)}
                         className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       >
-                        View Details
+                        詳細を見る
                       </button>
                       <button
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        onClick={() => router.push(`/admin/subscriptions/${plan.id}/edit`)}
+                        onClick={() => openEditModal(plan)}
                       >
                         プランを編集
                       </button>
@@ -296,6 +319,70 @@ export default function SubscriptionsPage() {
           </div>
         </div>
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg relative animate-fade-in">
+            <button className="absolute top-3 right-3 text-gray-400 hover:text-blue-600 text-2xl font-bold transition" onClick={() => setShowModal(false)} aria-label="閉じる">×</button>
+            <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">{editMode ? 'プランを編集' : '新しいプランを追加'}</h2>
+            <form onSubmit={handleModalSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">プラン名</label>
+                <input type="text" name="name" value={modalForm.name} onChange={handleModalChange} required className="block w-full border border-gray-300 rounded-lg px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">価格 (円)</label>
+                <input type="number" name="price" value={modalForm.price} onChange={handleModalChange} required className="block w-full border border-gray-300 rounded-lg px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Stripe価格ID</label>
+                <input type="text" name="priceId" value={modalForm.priceId} onChange={handleModalChange} required placeholder="price_xxx..." className="block w-full border border-gray-300 rounded-lg px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">特徴 (1行ごとに入力)</label>
+                <textarea name="features" value={modalForm.features} onChange={handleModalChange} required className="block w-full border border-gray-300 rounded-lg px-3 py-2" rows={4} />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">説明</label>
+                <textarea name="description" value={modalForm.description} onChange={handleModalChange} required className="block w-full border border-gray-300 rounded-lg px-3 py-2" rows={2} />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">ステータス</label>
+                <select name="status" value={modalForm.status} onChange={handleModalChange} required className="block w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option value="active">有効</option>
+                  <option value="inactive">無効</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">請求サイクル</label>
+                <select name="billingCycle" value={modalForm.billingCycle} onChange={handleModalChange} required className="block w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option value="monthly">月額</option>
+                  <option value="yearly">年額</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-1">予約上限</label>
+                  <input type="number" name="maxAppointments" value={modalForm.maxAppointments} onChange={handleModalChange} required className="block w-full border border-gray-300 rounded-lg px-3 py-2" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1">処方上限</label>
+                  <input type="number" name="maxPrescriptions" value={modalForm.maxPrescriptions} onChange={handleModalChange} required className="block w-full border border-gray-300 rounded-lg px-3 py-2" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1">検査上限</label>
+                  <input type="number" name="maxLabTests" value={modalForm.maxLabTests} onChange={handleModalChange} required className="block w-full border border-gray-300 rounded-lg px-3 py-2" />
+                </div>
+              </div>
+              {modalError && <div className="text-red-500 text-sm text-center">{modalError}</div>}
+              <div className="flex justify-end space-x-3 pt-4">
+                <button type="button" className="px-5 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition font-semibold" onClick={() => setShowModal(false)}>キャンセル</button>
+                <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold" disabled={modalLoading}>{modalLoading ? '保存中...' : '保存'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
