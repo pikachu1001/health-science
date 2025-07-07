@@ -65,8 +65,9 @@ export default function AdminDashboard() {
   const { stats: systemStats, loading: statsLoading, error: statsError } = useSystemStats();
   // Real-time clinics list
   const { clinics, loading: clinicsLoading, error: clinicsError } = useAllClinics();
-  // Real-time activity feed (latest 10)
-  const { activities, loading: activityLoading, error: activityError } = useActivityFeed(undefined, 10);
+  // Real-time activity feed (latest 10, can load more)
+  const [activityLimit, setActivityLimit] = useState(10);
+  const { activities, loading: activityLoading, error: activityError } = useActivityFeed(undefined, activityLimit);
   // Real-time subscriptions (for plan stats)
   const { subscriptions, loading: subsLoading, error: subsError } = useSubscriptionStatus();
 
@@ -138,6 +139,39 @@ export default function AdminDashboard() {
     'Plan A': 'プランA',
     'Plan B': 'プランB',
     'Plan C': 'プランC',
+  };
+
+  // Mapping for activity types to Japanese and UI details
+  const activityTypeMap: { [key: string]: { label: string; color: string; icon: JSX.Element } } = {
+    new_signup: {
+      label: '新規登録',
+      color: 'bg-blue-100 text-blue-800',
+      icon: (
+        <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+      ),
+    },
+    payment_success: {
+      label: '支払い成功',
+      color: 'bg-green-100 text-green-800',
+      icon: (
+        <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+      ),
+    },
+    payment_failed: {
+      label: '支払い失敗',
+      color: 'bg-red-100 text-red-800',
+      icon: (
+        <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+      ),
+    },
+    base_fee_paid: {
+      label: '基本料金支払い',
+      color: 'bg-yellow-100 text-yellow-800',
+      icon: (
+        <svg className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" /></svg>
+      ),
+    },
+    // 他のタイプもここに追加できます
   };
 
   return (
@@ -306,12 +340,6 @@ export default function AdminDashboard() {
               <div className="mt-8">
                 <div className="flex justify-between items-center">
                   <h2 className="text-lg font-bold text-gray-800">クリニック概要</h2>
-                  <button
-                    onClick={() => router.push('/admin/clinics/new')}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    新しいクリニックを追加
-                  </button>
                 </div>
                 <div className="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
                   <table className="min-w-full divide-y divide-gray-200">
@@ -369,7 +397,7 @@ export default function AdminDashboard() {
                       <li className="py-4 text-center">読み込み中...</li>
                     ) : activities.length === 0 ? (
                       <li className="py-4 text-center">最近のアクティビティはありません。</li>
-                    ) : activities.map(activity => {
+                    ) : activities.map((activity, idx) => {
                       let activityDate = '';
                       if (activity.timestamp) {
                         if (typeof activity.timestamp === 'string') {
@@ -381,18 +409,38 @@ export default function AdminDashboard() {
                           activityDate = activity.timestamp.toDate().toLocaleString();
                         }
                       }
+                      const typeInfo = activityTypeMap[activity.type] || {
+                        label: activity.type,
+                        color: 'bg-gray-100 text-gray-800',
+                        icon: (
+                          <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" /></svg>
+                        ),
+                      };
                       return (
-                        <li key={activity.activityId} className="px-6 py-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <span className="font-medium">{activity.type}</span>: {activity.message}
-                            </div>
-                            <div className="text-xs text-gray-400">{activityDate}</div>
+                        <li key={activity.activityId} className="flex items-center px-4 py-3 my-1 rounded-lg bg-gray-50 hover:bg-gray-100 transition">
+                          <div className="flex-shrink-0 mr-3">
+                            {typeInfo.icon}
                           </div>
+                          <div className="flex-1 min-w-0">
+                            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold mr-2 align-middle ${typeInfo.color}`}>{typeInfo.label}</span>
+                            <span className="align-middle text-gray-700 text-sm">{activity.message}</span>
+                          </div>
+                          <div className="ml-4 flex-shrink-0 text-xs text-gray-400 text-right min-w-[110px]">{activityDate}</div>
                         </li>
                       );
                     })}
                   </ul>
+                  {/* Show More button */}
+                  {activities.length === activityLimit && !activityLoading && (
+                    <div className="flex justify-center py-4">
+                      <button
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition font-semibold"
+                        onClick={() => setActivityLimit(l => l + 10)}
+                      >
+                        もっと見る
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 

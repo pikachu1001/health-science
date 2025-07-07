@@ -183,7 +183,7 @@ export const useActivityFeed = (clinicId?: string, limitCount: number = 10) => {
     if (clinicId) {
       // Filter by clinic
       q = query(
-        collection(db, 'activityFeed'),
+        collection(db, 'activity_feed'),
         where('clinicId', '==', clinicId),
         orderBy('timestamp', 'desc'),
         limit(limitCount)
@@ -191,7 +191,7 @@ export const useActivityFeed = (clinicId?: string, limitCount: number = 10) => {
     } else {
       // Get all activities (for admin)
       q = query(
-        collection(db, 'activityFeed'),
+        collection(db, 'activity_feed'),
         orderBy('timestamp', 'desc'),
         limit(limitCount)
       );
