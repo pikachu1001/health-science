@@ -1,19 +1,36 @@
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { FaClinicMedical, FaUserMd, FaUser, FaCrown, FaRegStar, FaMedal, FaCheckCircle } from 'react-icons/fa';
-import { Plan } from '../lib/plans';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
+type SubscriptionPlan = {
+  id: string;
+  name: string;
+  price: number;
+  commission: number;
+  companyCut: number;
+  description: string;
+  features: string[];
+  priceId: string;
+  status: 'active' | 'inactive';
+  billingCycle: 'monthly' | 'yearly';
+  maxAppointments?: number;
+  maxPrescriptions?: number;
+  maxLabTests?: number;
+  createdAt?: any;
+  updatedAt?: any;
+};
+
 export default function Home() {
   const router = useRouter();
   const { user, userData, loading } = useAuth();
   const [showModal, setShowModal] = useState(false);
-  const [modalPlan, setModalPlan] = useState<Plan | null>(null);
+  const [modalPlan, setModalPlan] = useState<SubscriptionPlan | null>(null);
   const [isPaying, setIsPaying] = useState(false);
-  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
 
   // Reopen modal after login if plan was stored
@@ -36,13 +53,13 @@ export default function Home() {
     if (!db) return;
     setPlansLoading(true);
     const unsub = onSnapshot(collection(db, 'subscriptionPlans'), (snapshot) => {
-      setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Plan[]);
+      setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as SubscriptionPlan[]);
       setPlansLoading(false);
     });
     return () => unsub();
   }, []);
 
-  const handleSelectPlan = (plan: Plan) => {
+  const handleSelectPlan = (plan: SubscriptionPlan) => {
     setModalPlan(plan);
     setShowModal(true);
   };

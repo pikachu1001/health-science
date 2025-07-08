@@ -1,20 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Plan } from '../../lib/plans';
 import { useAuth } from '../../contexts/AuthContext';
 import { doc, getDoc, onSnapshot, collection, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { FaUser, FaSignOutAlt, FaHospital, FaCheckCircle, FaRegStar, FaCrown, FaMedal } from 'react-icons/fa';
 
+type SubscriptionPlan = {
+  id: string;
+  name: string;
+  price: number;
+  commission: number;
+  companyCut: number;
+  description: string;
+  features: string[];
+  priceId: string;
+  status: 'active' | 'inactive';
+  billingCycle: 'monthly' | 'yearly';
+  maxAppointments?: number;
+  maxPrescriptions?: number;
+  maxLabTests?: number;
+  createdAt?: any;
+  updatedAt?: any;
+};
+
 export default function PatientDashboard() {
   const router = useRouter();
   const { user, userData, loading, logout } = useAuth();
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [subscriptionMessage, setSubscriptionMessage] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>('loading...');
   const [clinicName, setClinicName] = useState<string>('loading...');
-  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
 
 
@@ -54,7 +71,7 @@ export default function PatientDashboard() {
     if (!db) return;
     setPlansLoading(true);
     const unsub = onSnapshot(collection(db, 'subscriptionPlans'), (snapshot) => {
-      setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Plan[]);
+      setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as SubscriptionPlan[]);
       setPlansLoading(false);
     });
     return () => unsub();
@@ -81,7 +98,7 @@ export default function PatientDashboard() {
     }
   };
 
-  const handleSelectPlan = (plan: Plan) => {
+  const handleSelectPlan = (plan: SubscriptionPlan) => {
     setSelectedPlan(plan);
   };
 
