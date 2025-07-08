@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
 import { FirebaseError } from 'firebase/app';
+import { FaClinicMedical, FaUserPlus, FaArrowLeft } from 'react-icons/fa';
 
 interface FormErrors {
   email?: string;
@@ -155,27 +156,24 @@ export default function ClinicRegister() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          クリニック新規登録
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          すでにアカウントをお持ちの方は{' '}
-          <Link href="/auth/clinic/login" className="font-medium text-blue-600 hover:text-blue-500">
-            サインイン
-          </Link>
-        </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-purple-100">
+      {/* Header */}
+      <header className="sticky top-0 z-20 bg-gradient-to-r from-blue-100 via-white to-blue-50 shadow-md border-b border-blue-200 flex items-center px-4 h-16">
+        <span className="text-2xl text-blue-600 mr-2"><FaClinicMedical /></span>
+        <span className="font-extrabold text-blue-900 text-xl">クリニック新規登録</span>
+      </header>
+      <main className="flex-1 flex flex-col items-center justify-center py-12 px-4">
+        <div className="w-full max-w-md bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-8 border border-blue-100">
+          <div className="flex flex-col items-center mb-6">
+            <FaUserPlus className="text-blue-500 text-4xl mb-2" />
+            <h2 className="text-2xl font-bold text-blue-900 mb-2">クリニック新規登録</h2>
+          </div>
           {errors.submit && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
               <p className="text-sm text-red-600">{errors.submit}</p>
             </div>
           )}
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="clinicName" className="block text-sm font-medium text-gray-700">
                 クリニック名
@@ -347,8 +345,15 @@ export default function ClinicRegister() {
               </button>
             </div>
           </form>
+          <div className="mt-6 flex flex-col items-center gap-2">
+            <Link href="/auth/clinic/login" className="text-blue-700 hover:underline flex items-center gap-1"><FaClinicMedical /> すでにアカウントをお持ちの方はこちら</Link>
+            <button onClick={() => router.push('/')} className="text-gray-500 hover:text-blue-600 flex items-center gap-1 mt-2"><FaArrowLeft /> トップページに戻る</button>
+          </div>
         </div>
-      </div>
+      </main>
+      <footer className="w-full py-4 text-center text-gray-400 text-xs border-t bg-gradient-to-r from-blue-50 to-white mt-8">
+        &copy; {new Date().getFullYear()} Health Science SaaS. All rights reserved.
+      </footer>
     </div>
   );
 } 

@@ -1,82 +1,51 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
-import DashboardLayout from '../../components/DashboardLayout';
+import { plans, Plan } from '../../lib/plans';
 import { useAuth } from '../../contexts/AuthContext';
-import { usePatientAppointments, usePatientHealthRecords, usePatientMessages } from '../../lib/real-time-hooks';
-
-interface SidebarItem {
-  name: string;
-  href: string;
-  icon: (props: React.SVGProps<SVGSVGElement>) => JSX.Element;
-}
-
-interface HealthMetric {
-  status: 'active' | 'inactive';
-}
-
-const sidebarItems: SidebarItem[] = [
-  {
-    name: 'ダッシュボード',
-    href: '/patient/dashboard',
-    icon: (props) => (
-      <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-  },
-  {
-    name: 'プロフィール',
-    href: '/patient/profile',
-    icon: (props) => (
-      <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    ),
-  },
-  {
-    name: 'サブスクリプション',
-    href: '/patient/subscription',
-    icon: (props) => (
-      <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-      </svg>
-    ),
-  },
-];
-
-const navigation = [
-  { name: 'ダッシュボード', href: '/patient/dashboard' },
-  { name: '健康記録', href: '/patient/health-records' },
-  { name: '予約', href: '/patient/appointments' },
-  { name: '健康トラッキング', href: '/patient/health-tracking' },
-  { name: 'メッセージ', href: '/patient/messages' },
-  { name: 'ドキュメント', href: '/patient/documents' },
-  { name: 'プロフィール', href: '/patient/profile' },
-  { name: '設定', href: '/patient/settings' },
-  { name: 'サブスクリプション', href: '/patient/subscription' },
-  { name: 'サポート', href: '/patient/support' },
-];
+import { doc, getDoc, onSnapshot, collection, query, where } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { FaUser, FaSignOutAlt, FaHospital, FaCheckCircle, FaRegStar, FaCrown, FaMedal } from 'react-icons/fa';
 
 export default function PatientDashboard() {
-  const { user, loading, logout } = useAuth();
   const router = useRouter();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<HealthMetric>({
-    status: 'active',
-  });
+  const { user, userData, loading, logout } = useAuth();
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [subscriptionMessage, setSubscriptionMessage] = useState<string | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>('loading...');
+  const [clinicName, setClinicName] = useState<string>('loading...');
 
-  const patientId = user?.uid || '';
-  const { appointments, loading: appointmentsLoading } = usePatientAppointments(patientId, 5);
-  const { records: healthRecords, loading: healthRecordsLoading } = usePatientHealthRecords(patientId, 5);
-  const { messages, loading: messagesLoading } = usePatientMessages(patientId, 5);
 
+  // Real-time subscription status
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/auth/patient/login');
-    }
-  }, [user, loading, router]);
+    if (!user || !db) return;
+
+    // Query subscriptions where patientId == user.uid
+    const q = query(
+      collection(db, 'subscriptions'),
+      where('patientId', '==', user.uid)
+    );
+
+    const unsub = onSnapshot(q, (querySnapshot) => {
+      if (!querySnapshot.empty) {
+        // Assuming one active subscription per patient
+        const subData = querySnapshot.docs[0].data();
+        setSubscriptionStatus(subData.status || '不明');
+        if (subData.clinicId && db) {
+          getDoc(doc(db, 'clinics', subData.clinicId)).then(clinicSnap => {
+            setClinicName(clinicSnap.exists() ? clinicSnap.data().clinicName : '未登録');
+          });
+        } else {
+          setClinicName('未登録');
+        }
+      } else {
+        setSubscriptionStatus('未登録');
+        setClinicName('未登録');
+      }
+    });
+
+    return () => unsub();
+  }, [user, db]);
 
   useEffect(() => {
     if (router.query.success === 'true') {
@@ -87,7 +56,7 @@ export default function PatientDashboard() {
   }, [router.query]);
 
   if (loading || !user) {
-    return <div>読み込み中...</div>;
+    return <div>Loading...</div>;
   }
 
   const handleLogout = async () => {
@@ -95,293 +64,210 @@ export default function PatientDashboard() {
       await logout();
       router.push('/');
     } catch (error) {
-      console.error('Logout error:', error);
-      // Even if logout fails, redirect to home
       router.push('/');
     }
   };
 
+  const handleSelectPlan = (plan: Plan) => {
+    setSelectedPlan(plan);
+  };
+
+  const handleConfirmSubscription = async () => {
+    if (!selectedPlan || !user || !userData?.email) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: selectedPlan.priceId,
+          email: userData.email,
+          userId: user.uid
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Stripe Checkoutの作成に失敗しました: ' + (data.error || '不明なエラー'));
+      }
+    } catch (err) {
+      alert('Stripe Checkoutへのリダイレクト中にエラーが発生しました。');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Helper function to translate status
+  const translateStatus = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'アクティブ';
+      case 'inactive':
+        return '非アクティブ';
+      case 'canceled':
+        return 'キャンセル済み';
+      case 'trialing':
+        return 'トライアル中';
+      case 'past_due':
+        return '支払い遅延';
+      case 'unpaid':
+        return '未払い';
+      case '未登録':
+        return '未登録';
+      case '不明':
+        return '不明';
+      default:
+        return status;
+    }
+  };
+
+  // Helper function to translate status and get badge color
+  const statusInfo = (status: string) => {
+    switch (status) {
+      case 'アクティブ':
+        return { label: 'アクティブ', color: 'bg-green-100 text-green-800 border-green-300' };
+      case '非アクティブ':
+        return { label: '非アクティブ', color: 'bg-gray-100 text-gray-800 border-gray-300' };
+      case 'キャンセル済み':
+        return { label: 'キャンセル済み', color: 'bg-red-100 text-red-800 border-red-300' };
+      case 'トライアル中':
+        return { label: 'トライアル中', color: 'bg-blue-100 text-blue-800 border-blue-300' };
+      case '支払い遅延':
+        return { label: '支払い遅延', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' };
+      case '未払い':
+        return { label: '未払い', color: 'bg-orange-100 text-orange-800 border-orange-300' };
+      case '未登録':
+        return { label: '未登録', color: 'bg-gray-100 text-gray-800 border-gray-300' };
+      case '不明':
+        return { label: '不明', color: 'bg-gray-100 text-gray-800 border-gray-300' };
+      default:
+        return { label: status, color: 'bg-gray-100 text-gray-800 border-gray-300' };
+    }
+  };
+
+  // Determine if user is subscribed
+  const isSubscribed = subscriptionStatus === 'アクティブ' || subscriptionStatus === 'トライアル中';
+
   return (
-    <DashboardLayout allowedRoles={['patient']}>
-      <div className="bg-gray-100 min-h-screen">
-        <nav className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16 items-center">
-              <div className="flex items-center">
-                <button
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-                >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-                <h1 className="ml-4 text-xl font-bold text-gray-800">患者ダッシュボード</h1>
-              </div>
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={handleLogout}
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  ログアウト
-                </button>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        <div className="flex">
-          {/* Sidebar */}
-          <div className={`${isSidebarOpen ? 'block' : 'hidden'} w-64 bg-white shadow-sm h-screen`}>
-            <div className="flex-1 flex flex-col overflow-y-auto">
-              <nav className="flex-1 px-2 py-4 space-y-1">
-                {sidebarItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${router.pathname === item.href
-                        ? 'bg-blue-100 text-blue-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <item.icon
-                      className={`mr-3 h-6 w-6 ${router.pathname === item.href
-                          ? 'text-blue-600'
-                          : 'text-gray-400 group-hover:text-gray-500'
-                      }`}
-                    />
-                    {item.name}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 p-8">
-            <div className="max-w-7xl mx-auto">
-              {subscriptionMessage && (
-                <div className={`mb-6 text-center py-3 px-4 rounded-md font-semibold ${router.query.success === 'true' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                  {subscriptionMessage}
-                </div>
-              )}
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {/* Upcoming Appointments */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="p-5">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray-500 truncate">
-                            今後の予約
-                          </dt>
-                          <dd className="text-lg font-medium text-gray-900">
-                            0
-                          </dd>
-                        </dl>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Unread Messages */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="p-5">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                        </svg>
-                      </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray-500 truncate">
-                            未読メッセージ
-                          </dt>
-                          <dd className="text-lg font-medium text-gray-900">
-                            0
-                          </dd>
-                        </dl>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Health Records */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="p-5">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray-500 truncate">
-                            健康記録
-                          </dt>
-                          <dd className="text-lg font-medium text-gray-900">
-                            0
-                          </dd>
-                        </dl>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Subscription Status */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="p-5">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                        </svg>
-                      </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray-500 truncate">
-                            サブスクリプション状況
-                          </dt>
-                          <dd className="text-lg font-medium text-gray-900">
-                            有効
-                          </dd>
-                        </dl>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Detailed Real-Time Lists */}
-              <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Appointments List */}
-                <div className="bg-white shadow rounded-lg p-6">
-                  <div className="flex items-center mb-2">
-                    <span className="flex items-center mr-2">
-                      <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse mr-1"></span>
-                      <span className="text-xs text-green-700">ライブ更新中</span>
-                    </span>
-                    <span className="font-semibold">今後の予約</span>
-                  </div>
-                  {appointmentsLoading ? (
-                    <div className="text-gray-400 py-4">読み込み中...</div>
-                  ) : appointments.length === 0 ? (
-                    <div className="text-gray-400 py-4">予約はありません。</div>
-                  ) : (
-                    <ul className="divide-y divide-gray-100">
-                      {appointments.map((appt: any) => (
-                        <li key={appt.id} className="py-2">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <div className="font-medium text-gray-900">{appt.type || '予約'}</div>
-                              <div className="text-xs text-gray-500">{appt.date} {appt.time}</div>
-                            </div>
-                            <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${appt.status === 'scheduled' ? 'bg-blue-100 text-blue-700' : appt.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{appt.status}</span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                {/* Health Records List */}
-                <div className="bg-white shadow rounded-lg p-6">
-                  <div className="flex items-center mb-2">
-                    <span className="flex items-center mr-2">
-                      <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse mr-1"></span>
-                      <span className="text-xs text-green-700">ライブ更新中</span>
-                    </span>
-                    <span className="font-semibold">最近の健康記録</span>
-                  </div>
-                  {healthRecordsLoading ? (
-                    <div className="text-gray-400 py-4">読み込み中...</div>
-                  ) : healthRecords.length === 0 ? (
-                    <div className="text-gray-400 py-4">健康記録はありません。</div>
-                  ) : (
-                    <ul className="divide-y divide-gray-100">
-                      {healthRecords.map((rec: any) => (
-                        <li key={rec.id} className="py-2">
-                          <div className="font-medium text-gray-900">{rec.title || rec.type || '記録'}</div>
-                          <div className="text-xs text-gray-500">{rec.date} {rec.provider && `| ${rec.provider}`}</div>
-                          <div className="text-xs text-gray-400 truncate">{rec.description}</div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                {/* Messages List */}
-                <div className="bg-white shadow rounded-lg p-6">
-                  <div className="flex items-center mb-2">
-                    <span className="flex items-center mr-2">
-                      <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse mr-1"></span>
-                      <span className="text-xs text-green-700">ライブ更新中</span>
-                    </span>
-                    <span className="font-semibold">新着メッセージ</span>
-                  </div>
-                  {messagesLoading ? (
-                    <div className="text-gray-400 py-4">読み込み中...</div>
-                  ) : messages.length === 0 ? (
-                    <div className="text-gray-400 py-4">メッセージはありません。</div>
-                  ) : (
-                    <ul className="divide-y divide-gray-100">
-                      {messages.map((msg: any) => (
-                        <li key={msg.id} className="py-2">
-                          <div className="font-medium text-gray-900 truncate">{msg.subject || 'メッセージ'}</div>
-                          <div className="text-xs text-gray-500">{msg.date && new Date(msg.date).toLocaleString()}</div>
-                          <div className="text-xs text-gray-400 truncate">{msg.content}</div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-
-              {/* Recent Activity */}
-              <div className="mt-8">
-                <div className="bg-white shadow rounded-lg">
-                  <div className="px-4 py-5 sm:px-6">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">
-                      最近のアクティビティ
-                    </h3>
-                  </div>
-                  <div className="border-t border-gray-200">
-                    <div className="px-4 py-5 sm:p-6">
-                      <p className="text-gray-500 text-center">
-                        最近のアクティビティはありません
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Health Tips */}
-              <div className="mt-8">
-                <div className="bg-white shadow rounded-lg">
-                  <div className="px-4 py-5 sm:px-6">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">
-                      健康アドバイス
-                    </h3>
-                  </div>
-                  <div className="border-t border-gray-200">
-                    <div className="px-4 py-5 sm:p-6">
-                      <p className="text-gray-500 text-center">
-                        パーソナライズされた健康アドバイスがここに表示されます
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-white">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-20 bg-gradient-to-r from-blue-100 via-white to-blue-50 shadow-md px-4 py-4 flex justify-between items-center border-b border-blue-200">
+        <div className="flex items-center gap-6">
+          <span className="font-bold text-2xl text-blue-900 tracking-tight">患者ダッシュボード</span>
+          <span className={`inline-flex items-center px-3 py-1 rounded-full border text-sm font-semibold ${statusInfo(translateStatus(subscriptionStatus)).color}`} title="サブスクリプション状況">
+            <FaCheckCircle className="mr-1" />
+            {statusInfo(translateStatus(subscriptionStatus)).label}
+          </span>
+          <span className="inline-flex items-center px-3 py-1 rounded-full border border-blue-200 bg-white text-blue-800 text-sm font-semibold" title="クリニック">
+            <FaHospital className="mr-1" />
+            {clinicName}
+          </span>
         </div>
-      </div>
-    </DashboardLayout>
+        <div className="flex gap-2">
+          <button
+            onClick={() => router.push('/patient/profile')}
+            className="px-4 py-2 rounded bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium flex items-center gap-2 shadow-sm"
+          >
+            <FaUser /> プロフィール
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-white font-medium flex items-center gap-2 shadow-sm"
+          >
+            <FaSignOutAlt /> ログアウト
+          </button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 w-full max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        {/* Subscription Message */}
+        {subscriptionMessage && (
+          <div className={`mb-6 text-center py-3 px-4 rounded-md font-semibold ${router.query.success === 'true' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{subscriptionMessage}</div>
+        )}
+
+        {/* If subscribed, show summary. Else, show plan selection */}
+        {isSubscribed ? (
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center border border-blue-100 max-w-xl mx-auto">
+            <div className="flex flex-col items-center gap-2 mb-4">
+              <FaCrown className="text-yellow-400 text-3xl" />
+              <h2 className="text-2xl font-bold text-blue-900">ご利用中のプラン</h2>
+            </div>
+            <div className="text-lg text-gray-700 mb-2">サブスクリプション状況: <span className={`font-bold ${statusInfo(translateStatus(subscriptionStatus)).color}`}>{statusInfo(translateStatus(subscriptionStatus)).label}</span></div>
+            <div className="text-lg text-gray-700 mb-2">クリニック: <span className="font-bold text-blue-800">{clinicName}</span></div>
+            {/* Optionally, show more details about the plan here */}
+          </div>
+        ) : (
+          <>
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-extrabold text-blue-900 sm:text-5xl drop-shadow">サブスクリプションプラン</h1>
+              <p className="mt-4 text-xl text-blue-600">あなたに最適なプランを選択してください。</p>
+            </div>
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+              {plans.map((plan, idx) => (
+                <div
+                  key={plan.id}
+                  className={`relative p-8 bg-white border rounded-2xl shadow-lg flex flex-col transition-transform transform hover:scale-105 cursor-pointer ${selectedPlan?.id === plan.id ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200'} ${plan.name === 'プレミアム' ? 'bg-gradient-to-br from-yellow-50 to-white' : ''}`}
+                  onClick={() => handleSelectPlan(plan)}
+                >
+                  {selectedPlan?.id === plan.id && (
+                    <div className="absolute top-4 right-4 text-blue-500">
+                      <FaCheckCircle size={24} />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mb-2">
+                    {idx === 0 && <FaRegStar className="text-blue-400" />}
+                    {idx === 1 && <FaMedal className="text-green-400" />}
+                    {idx === 2 && <FaCrown className="text-yellow-400" />}
+                    <h3 className="text-2xl font-semibold text-gray-900">{plan.name}</h3>
+                  </div>
+                  <p className="mt-2 text-gray-500 min-h-[48px]">{plan.description}</p>
+                  <div className="mt-6">
+                    <p className="text-4xl font-extrabold text-blue-900">¥{plan.price.toLocaleString()}<span className="text-lg font-medium text-gray-500">/月</span></p>
+                  </div>
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <p className="text-sm font-semibold text-gray-600">料金内訳:</p>
+                    <ul className="mt-2 space-y-2">
+                      <li className="flex items-center gap-2">
+                        <FaHospital className="text-green-500" />
+                        <span className="text-sm text-gray-700">クリニックへの報酬: ¥{plan.commission.toLocaleString()}</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <FaCrown className="text-purple-500" />
+                        <span className="text-sm text-gray-700">システム手数料: ¥{plan.companyCut.toLocaleString()}</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <ul role="list" className="mt-6 space-y-4 flex-1">
+                    {plan.features.map((feature, i) => (
+                      <li key={feature} className="flex items-center gap-2 text-blue-700">
+                        <FaCheckCircle className="text-green-400" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            {selectedPlan && (
+              <div className="mt-10 text-center">
+                <button
+                  onClick={handleConfirmSubscription}
+                  disabled={isLoading}
+                  className="w-full max-w-md mx-auto bg-blue-600 border border-transparent rounded-md shadow-lg py-3 px-4 text-base font-bold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition"
+                >
+                  {isLoading ? '処理中...' : `${selectedPlan.name}に登録する`}
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </main>
+      {/* Footer */}
+      <footer className="w-full py-4 text-center text-gray-400 text-xs border-t bg-gradient-to-r from-blue-50 to-white mt-8">
+        &copy; {new Date().getFullYear()} Health Science SaaS. All rights reserved.
+      </footer>
+    </div>
   );
 } 

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
 import { FirebaseError } from 'firebase/app';
 import { fetchUserProfileWithRetry } from '../../../lib/authHelpers';
+import { FaUser, FaSignInAlt, FaArrowLeft } from 'react-icons/fa';
 
 export default function PatientLogin() {
   const router = useRouter();
@@ -79,94 +80,41 @@ export default function PatientLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          患者ログイン
-        </h2>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm text-red-600">{error}</p>
-            </div>
-          )}
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                メールアドレス
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="メールアドレスを入力してください"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                パスワード
-              </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="パスワードを入力してください"
-                />
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {isLoading ? 'サインイン中...' : 'サインイン'}
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-4 flex justify-center">
-            <button
-              type="button"
-              onClick={() => router.push('/')}
-              className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium"
-            >
-              トップページに戻る
-            </button>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-purple-100">
+      {/* Header */}
+      <header className="sticky top-0 z-20 bg-gradient-to-r from-blue-100 via-white to-blue-50 shadow-md border-b border-blue-200 flex items-center px-4 h-16">
+        <span className="text-2xl text-blue-600 mr-2"><FaUser /></span>
+        <span className="font-extrabold text-blue-900 text-xl">患者ログイン</span>
+      </header>
+      <main className="flex-1 flex flex-col items-center justify-center py-12 px-4">
+        <div className="w-full max-w-md bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-8 border border-blue-100">
+          <div className="flex flex-col items-center mb-6">
+            <FaUser className="text-blue-500 text-4xl mb-2" />
+            <h2 className="text-2xl font-bold text-blue-900 mb-2">患者ログイン</h2>
           </div>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  アカウントをお持ちでない方は{' '}
-                  <Link href="/auth/patient/register" className="text-blue-600 hover:text-blue-500">
-                    新規登録はこちら
-                  </Link>
-                </span>
-              </div>
+          {error && <div className="mb-4 py-2 px-4 rounded bg-red-100 text-red-700 text-center font-semibold shadow">{error}</div>}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-bold text-blue-900 mb-1">メールアドレス</label>
+              <input type="email" name="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full px-4 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition" />
             </div>
+            <div>
+              <label className="block text-sm font-bold text-blue-900 mb-1">パスワード</label>
+              <input type="password" name="password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full px-4 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition" />
+            </div>
+            <button type="submit" disabled={isLoading} className="w-full bg-blue-600 border border-transparent rounded-md shadow-lg py-3 px-4 text-base font-bold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition flex items-center justify-center gap-2 disabled:opacity-50">
+              <FaSignInAlt /> {isLoading ? 'ログイン中...' : 'ログイン'}
+            </button>
+          </form>
+          <div className="mt-6 flex flex-col items-center gap-2">
+            <Link href="/auth/patient/register" className="text-blue-700 hover:underline flex items-center gap-1"><FaUser /> 新規登録はこちら</Link>
+            <button onClick={() => router.push('/')} className="text-gray-500 hover:text-blue-600 flex items-center gap-1 mt-2"><FaArrowLeft /> トップページに戻る</button>
           </div>
         </div>
-      </div>
+      </main>
+      <footer className="w-full py-4 text-center text-gray-400 text-xs border-t bg-gradient-to-r from-blue-50 to-white mt-8">
+        &copy; {new Date().getFullYear()} Health Science SaaS. All rights reserved.
+      </footer>
     </div>
   );
 } 
