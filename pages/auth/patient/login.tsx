@@ -143,6 +143,16 @@ export default function PatientLogin() {
             </div>
           </form>
 
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => router.push('/')}
+              className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium"
+            >
+              トップページに戻る
+            </button>
+          </div>
+
           <div className="mt-6">
             <div className="relative">
               <div className="relative flex justify-center text-sm">
