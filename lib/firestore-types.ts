@@ -46,18 +46,43 @@ export interface Clinic {
 
 // Data for a subscription, stored in 'subscriptions' collection
 export interface Subscription {
-  subscriptionId: string;
-  patientId: string;
-  clinicId: string;
-  plan: string;
-  stripeSubscriptionId: string;
-  stripeCustomerId: string;
-  status: 'active' | 'cancelled' | 'past_due';
-  amount: number;
-  clinicCommission: number;
-  adminRevenue: number;
-  createdAt: any; // Firestore Timestamp
-  updatedAt: any; // Firestore Timestamp
+  subscriptionId?: string; // Firestore doc ID (optional, as Firestore provides this)
+  patientId: string;           // Reference to user
+  clinicId: string;            // Reference to clinic
+  planId: string;              // Reference to subscriptionPlans
+  planSnapshot?: {
+    name: string;
+    price: number;
+    commission: number;
+    companyCut: number;
+  };                           // (optional) Copy of plan details at time of signup
+  status: 'active' | 'canceled' | 'past_due';
+  stripeSubscriptionId: string; // Stripe subscription ID
+  startDate: any;               // Firestore Timestamp
+  endDate?: any;                // Firestore Timestamp or null if ongoing
+  lastPaymentDate?: any;        // Firestore Timestamp
+  nextPaymentDate?: any;        // Firestore Timestamp
+  canceledAt?: any;             // Firestore Timestamp or null if not canceled
+  createdAt: any;               // Firestore Timestamp
+  updatedAt: any;               // Firestore Timestamp
+}
+
+export interface SubscriptionPlan {
+  id: string;                   // Firestore doc ID or custom (A/B/C)
+  name: string;
+  price: number;
+  commission: number;           // Amount to clinic
+  companyCut: number;           // Amount to company
+  description: string;
+  features: string[];
+  priceId: string;              // Stripe Price ID
+  status: 'active' | 'inactive';
+  billingCycle: 'monthly' | 'yearly';
+  maxAppointments?: number;
+  maxPrescriptions?: number;
+  maxLabTests?: number;
+  createdAt: any;               // Firestore Timestamp
+  updatedAt: any;               // Firestore Timestamp
 }
 
 // Activity Feed

@@ -89,7 +89,7 @@ export default function ClinicDashboard() {
   };
 
   // Aggregate commission for this clinic
-  const totalClinicCommission = subsLoading ? 0 : subscriptions.reduce((sum, s) => sum + (s.clinicCommission || 0), 0);
+  const totalClinicCommission = subsLoading ? 0 : subscriptions.reduce((sum, s) => sum + ((s as any).clinicCommission || 0), 0);
 
   return (
     <DashboardLayout allowedRoles={['clinic']}>

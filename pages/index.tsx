@@ -1,7 +1,9 @@
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { FaClinicMedical, FaUserMd, FaUser, FaCrown, FaRegStar, FaMedal, FaCheckCircle } from 'react-icons/fa';
-import { plans, Plan } from '../lib/plans';
+import { Plan } from '../lib/plans';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -11,6 +13,8 @@ export default function Home() {
   const [showModal, setShowModal] = useState(false);
   const [modalPlan, setModalPlan] = useState<Plan | null>(null);
   const [isPaying, setIsPaying] = useState(false);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plansLoading, setPlansLoading] = useState(true);
 
   // Reopen modal after login if plan was stored
   useEffect(() => {
@@ -25,6 +29,17 @@ export default function Home() {
         }
       }
     }
+  }, []);
+
+  // Fetch subscription plans from Firestore
+  useEffect(() => {
+    if (!db) return;
+    setPlansLoading(true);
+    const unsub = onSnapshot(collection(db, 'subscriptionPlans'), (snapshot) => {
+      setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Plan[]);
+      setPlansLoading(false);
+    });
+    return () => unsub();
   }, []);
 
   const handleSelectPlan = (plan: Plan) => {

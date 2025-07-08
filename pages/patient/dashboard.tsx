@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { plans, Plan } from '../../lib/plans';
+import { Plan } from '../../lib/plans';
 import { useAuth } from '../../contexts/AuthContext';
 import { doc, getDoc, onSnapshot, collection, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -14,6 +14,8 @@ export default function PatientDashboard() {
   const [subscriptionMessage, setSubscriptionMessage] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>('loading...');
   const [clinicName, setClinicName] = useState<string>('loading...');
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plansLoading, setPlansLoading] = useState(true);
 
 
   // Real-time subscription status
@@ -46,6 +48,17 @@ export default function PatientDashboard() {
 
     return () => unsub();
   }, [user, db]);
+
+  // Fetch subscription plans from Firestore
+  useEffect(() => {
+    if (!db) return;
+    setPlansLoading(true);
+    const unsub = onSnapshot(collection(db, 'subscriptionPlans'), (snapshot) => {
+      setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Plan[]);
+      setPlansLoading(false);
+    });
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     if (router.query.success === 'true') {
@@ -199,69 +212,119 @@ export default function PatientDashboard() {
             {/* Optionally, show more details about the plan here */}
           </div>
         ) : (
-          <>
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-extrabold text-blue-900 sm:text-5xl drop-shadow">サブスクリプションプラン</h1>
-              <p className="mt-4 text-xl text-blue-600">あなたに最適なプランを選択してください。</p>
-            </div>
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-              {plans.map((plan, idx) => (
-                <div
-                  key={plan.id}
-                  className={`relative p-8 bg-white border rounded-2xl shadow-lg flex flex-col transition-transform transform hover:scale-105 cursor-pointer ${selectedPlan?.id === plan.id ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200'} ${plan.name === 'プレミアム' ? 'bg-gradient-to-br from-yellow-50 to-white' : ''}`}
-                  onClick={() => handleSelectPlan(plan)}
-                >
-                  {selectedPlan?.id === plan.id && (
-                    <div className="absolute top-4 right-4 text-blue-500">
-                      <FaCheckCircle size={24} />
+          plans.length > 0 ? (
+            <div>
+              <h2 className="text-2xl font-bold text-blue-900 mb-6 text-center">プランを選択してください</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {plans.map((plan, idx) => (
+                  <div
+                    key={plan.id}
+                    className={`relative p-8 bg-white border rounded-2xl shadow-lg flex flex-col transition-transform transform hover:scale-105 cursor-pointer ${plan.name === 'プレミアム' ? 'bg-gradient-to-br from-yellow-50 to-white' : ''}`}
+                    onClick={() => handleSelectPlan(plan)}
+                  >
+                    {/* Badge for popular plan */}
+                    {idx === 2 && (
+                      <span className="absolute top-4 right-4 bg-yellow-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow"><FaCrown className="inline mr-1" />人気</span>
+                    )}
+                    <div className="flex items-center gap-2 mb-2">
+                      {idx === 0 && <FaRegStar className="text-blue-400" />}
+                      {idx === 1 && <FaMedal className="text-green-400" />}
+                      {idx === 2 && <FaCrown className="text-yellow-400" />}
+                      <h3 className="text-2xl font-semibold text-gray-900">{plan.name}</h3>
                     </div>
-                  )}
-                  <div className="flex items-center gap-2 mb-2">
-                    {idx === 0 && <FaRegStar className="text-blue-400" />}
-                    {idx === 1 && <FaMedal className="text-green-400" />}
-                    {idx === 2 && <FaCrown className="text-yellow-400" />}
-                    <h3 className="text-2xl font-semibold text-gray-900">{plan.name}</h3>
-                  </div>
-                  <p className="mt-2 text-gray-500 min-h-[48px]">{plan.description}</p>
-                  <div className="mt-6">
-                    <p className="text-4xl font-extrabold text-blue-900">¥{plan.price.toLocaleString()}<span className="text-lg font-medium text-gray-500">/月</span></p>
-                  </div>
-                  <div className="mt-6 pt-6 border-t border-gray-200">
-                    <p className="text-sm font-semibold text-gray-600">料金内訳:</p>
-                    <ul className="mt-2 space-y-2">
-                      <li className="flex items-center gap-2">
-                        <FaHospital className="text-green-500" />
-                        <span className="text-sm text-gray-700">クリニックへの報酬: ¥{plan.commission.toLocaleString()}</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <FaCrown className="text-purple-500" />
-                        <span className="text-sm text-gray-700">システム手数料: ¥{plan.companyCut.toLocaleString()}</span>
-                      </li>
+                    <p className="mt-2 text-gray-500 min-h-[48px]">{plan.description}</p>
+                    <div className="mt-6">
+                      <p className="text-4xl font-extrabold text-blue-900">¥{plan.price.toLocaleString()}<span className="text-lg font-medium text-gray-500">/月</span></p>
+                    </div>
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                      <p className="text-sm font-semibold text-gray-600">料金内訳:</p>
+                      <ul className="mt-2 space-y-2">
+                        <li className="flex items-center gap-2">
+                          <FaHospital className="text-green-500" />
+                          <span className="text-sm text-gray-700">クリニック受取: ¥{plan.commission.toLocaleString()}</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <FaCrown className="text-purple-500" />
+                          <span className="text-sm text-gray-700">会社受取: ¥{plan.companyCut.toLocaleString()}</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <ul role="list" className="mt-6 space-y-4 flex-1">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-center gap-2 text-blue-700">
+                          <FaCheckCircle className="text-green-400" />
+                          <span className="text-sm">{feature}</span>
+                        </li>
+                      ))}
                     </ul>
+                    <button
+                      className="mt-6 w-full bg-blue-600 border border-transparent rounded-md shadow-lg py-3 px-4 text-base font-bold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                      onClick={(e) => { e.stopPropagation(); handleSelectPlan(plan); }}
+                    >
+                      このプランを選択
+                    </button>
                   </div>
-                  <ul role="list" className="mt-6 space-y-4 flex-1">
-                    {plan.features.map((feature, i) => (
-                      <li key={feature} className="flex items-center gap-2 text-blue-700">
-                        <FaCheckCircle className="text-green-400" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-            {selectedPlan && (
-              <div className="mt-10 text-center">
-                <button
-                  onClick={handleConfirmSubscription}
-                  disabled={isLoading}
-                  className="w-full max-w-md mx-auto bg-blue-600 border border-transparent rounded-md shadow-lg py-3 px-4 text-base font-bold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition"
-                >
-                  {isLoading ? '処理中...' : `${selectedPlan.name}に登録する`}
-                </button>
+                ))}
               </div>
-            )}
-          </>
+              {/* Plan selection modal */}
+              {selectedPlan && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 animate-fadeIn">
+                  <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full border border-blue-200 focus:outline-none" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+                    {/* Close button */}
+                    <button
+                      className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 focus:outline-none"
+                      aria-label="閉じる"
+                      onClick={() => setSelectedPlan(null)}
+                    >
+                      ×
+                    </button>
+                    <h3 className="text-2xl font-bold text-blue-900 mb-4" id="modal-title">プラン確認</h3>
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="text-xl font-semibold text-gray-900">{selectedPlan.name}</h4>
+                      </div>
+                      <p className="text-gray-500">{selectedPlan.description}</p>
+                      <div className="mt-4">
+                        <p className="text-3xl font-extrabold text-blue-900">¥{selectedPlan.price.toLocaleString()}<span className="text-lg font-medium text-gray-500">/月</span></p>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <p className="text-sm font-semibold text-gray-600">料金内訳:</p>
+                        <ul className="mt-2 space-y-2">
+                          <li className="flex items-center gap-2">
+                            <FaHospital className="text-green-500" />
+                            <span className="text-sm text-gray-700">クリニック受取: ¥{selectedPlan.commission.toLocaleString()}</span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <FaCrown className="text-purple-500" />
+                            <span className="text-sm text-gray-700">会社受取: ¥{selectedPlan.companyCut.toLocaleString()}</span>
+                          </li>
+                        </ul>
+                      </div>
+                      <ul role="list" className="mt-4 space-y-4 flex-1">
+                        {selectedPlan.features.map((feature) => (
+                          <li key={feature} className="flex items-center gap-2 text-blue-700">
+                            <FaCheckCircle className="text-green-400" />
+                            <span className="text-sm">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <button
+                      className="mt-6 w-full bg-blue-600 border border-transparent rounded-md shadow-lg py-3 px-4 text-base font-bold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                      onClick={handleConfirmSubscription}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? '処理中...' : 'このプランで申し込む'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 text-lg py-12">
+              現在利用可能なプランがありません。
+            </div>
+          )
         )}
       </main>
       {/* Footer */}
