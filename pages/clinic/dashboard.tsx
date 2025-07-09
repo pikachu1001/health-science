@@ -27,11 +27,11 @@ export default function ClinicDashboard() {
 
   const navigationItems = [
     { name: 'ダッシュボード', href: '/clinic/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-    { name: '治療履歴', href: '/clinic/treatment-history', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
-    { name: '診療記録', href: '/clinic/medical-charts', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-    { name: '在庫管理', href: '/clinic/inventory', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
-    { name: 'スタッフスケジュール', href: '/clinic/staff-schedule', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { name: '保険請求', href: '/clinic/insurance-claims', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+    // { name: '治療履歴', href: '/clinic/treatment-history', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
+    // { name: '診療記録', href: '/clinic/medical-charts', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+    // { name: '在庫管理', href: '/clinic/inventory', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
+    // { name: 'スタッフスケジュール', href: '/clinic/staff-schedule', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+    // { name: '保険請求', href: '/clinic/insurance-claims', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
   ];
 
   const handlePayBaseFee = async () => {
@@ -107,12 +107,13 @@ export default function ClinicDashboard() {
                 </div>
               </div>
               <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => router.push('/clinic/appointments/new')}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  新規予約
-                </button>
+              <button
+                onClick={handlePayBaseFee}
+                disabled={payingBaseFee}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+              >
+                {payingBaseFee ? '処理中...' : '基本料金を支払う'}
+              </button>
                 <button
                   onClick={handleLogout}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
@@ -121,19 +122,6 @@ export default function ClinicDashboard() {
                 </button>
               </div>
             </div>
-            {/* Base Fee Payment Button */}
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={handlePayBaseFee}
-                disabled={payingBaseFee}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-              >
-                {payingBaseFee ? '処理中...' : '基本料金を支払う'}
-              </button>
-            </div>
-            {baseFeeError && (
-              <div className="mt-2 text-red-600 text-sm">{baseFeeError}</div>
-            )}
           </div>
         </nav>
 
@@ -264,7 +252,6 @@ export default function ClinicDashboard() {
                   </div>
                 </div>
               </div>
-
               {/* Total Clinic Commission */}
               <div className="bg-white overflow-hidden shadow rounded-lg">
                 <div className="p-5">

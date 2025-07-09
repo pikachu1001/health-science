@@ -25,7 +25,13 @@ interface Subscription {
   subscriptionId: string;
   patientId: string;
   status: 'active' | 'cancelled' | 'past_due';
-  plan: string;
+  planId: string;
+  planSnapshot?: {
+    name: string;
+    price: number;
+    commission: number;
+    companyCut: number;
+  };
 }
 
 function useAllPatients() {
@@ -68,7 +74,8 @@ const useAllSubscriptions = () => {
           subscriptionId: docSnap.id,
           patientId: d.patientId || '',
           status: d.status || 'cancelled',
-          plan: d.plan || '',
+          planId: d.planId || '',
+          planSnapshot: d.planSnapshot || undefined,
         };
       });
       setSubscriptions(data);
@@ -100,6 +107,15 @@ export default function PatientsPage() {
       return sub.status;
     }
     return '未加入';
+  };
+
+  // Helper to get plan name for a subscription
+  const getPlanName = (subscription: Subscription) => {
+    if (subscription.planSnapshot && subscription.planSnapshot.name) {
+      return subscription.planSnapshot.name;
+    }
+    // Optionally, fetch plan from Firestore by planId if needed (not implemented here for brevity)
+    return subscription.planId || '未登録';
   };
 
   // Modal state
@@ -188,7 +204,7 @@ export default function PatientsPage() {
     const subscriptionStatus = getSubscriptionStatus(patient.id);
     const matchesStatus = statusFilter === 'all' || subscriptionStatus === statusFilter;
     const subscription = subscriptions.find(s => s.patientId === patient.id);
-    const matchesPlan = planFilter === 'all' || (subscription && subscription.plan === planFilter);
+    const matchesPlan = planFilter === 'all' || (subscription && (subscription.planId === planFilter || getPlanName(subscription) === planFilter));
     return matchesSearch && matchesStatus && matchesPlan;
   });
 
@@ -317,9 +333,13 @@ export default function PatientsPage() {
                   onChange={(e) => setPlanFilter(e.target.value)}
                 >
                   <option value="all">すべてのプラン</option>
-                  {Array.from(new Set(subscriptions.map(s => s.plan).filter(Boolean))).map(plan => (
-                    <option key={plan} value={plan}>{plan}</option>
-                  ))}
+                  {Array.from(new Set(subscriptions.map(s => s.planId).filter(Boolean))).map(planId => {
+                    const sub = subscriptions.find(s => s.planId === planId);
+                    const planName = sub && sub.planSnapshot && sub.planSnapshot.name ? sub.planSnapshot.name : planId;
+                    return (
+                      <option key={planId} value={planId}>{planName}</option>
+                    );
+                  })}
                 </select>
               </div>
             </div>
@@ -351,7 +371,12 @@ export default function PatientsPage() {
                         <div className="text-sm text-gray-500">{patient.phoneNumber}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{planNameMap[patient.subscriptionPlan] || patient.subscriptionPlan}</div>
+                        <div className="text-sm text-gray-900">{
+                          (() => {
+                            const sub = subscriptions.find(s => s.patientId === patient.id);
+                            return sub ? getPlanName(sub) : '未登録';
+                          })()
+                        }</div>
                         <div className="text-sm text-gray-500">最終受診日: {patient.lastVisit}</div>
                       </td>
                       <td className={

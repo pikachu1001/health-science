@@ -1,6 +1,5 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { adminDb } = require('../../../lib/firebase-admin');
-const { plans } = require('../../../lib/plans');
 const getRawBody = require('raw-body');
 
 // This is required to handle the request body as a buffer
@@ -9,6 +8,14 @@ export const config = {
         bodyParser: false,
     },
 };
+
+// Helper to fetch plan from Firestore by priceId
+async function getPlanByPriceId(priceId) {
+    const plansSnap = await adminDb.collection('subscriptionPlans').where('priceId', '==', priceId).where('status', '==', 'active').limit(1).get();
+    if (plansSnap.empty) return null;
+    const planDoc = plansSnap.docs[0];
+    return { id: planDoc.id, ...planDoc.data() };
+}
 
 const handleCheckoutCompleted = async (session) => {
     const { userId, type } = session.metadata;
@@ -49,7 +56,7 @@ const handleCheckoutCompleted = async (session) => {
     // Find the plan based on the price ID from the session
     const lineItem = (await stripe.checkout.sessions.listLineItems(session.id)).data[0];
     const priceId = lineItem.price.id;
-    const plan = plans.find((p) => p.priceId === priceId);
+    const plan = await getPlanByPriceId(priceId);
 
     if (!plan) {
         console.error(`Webhook Error: Could not find plan for priceId: ${priceId}`);
@@ -66,7 +73,13 @@ const handleCheckoutCompleted = async (session) => {
         subscriptionId: subscriptionRef.id,
         patientId: userId,
         clinicId: clinicId || 'unknown',
-        plan: plan.id,
+        planId: plan.id,
+        planSnapshot: {
+            name: plan.name,
+            price: plan.price,
+            commission: plan.commission,
+            companyCut: plan.companyCut,
+        },
         stripeSubscriptionId,
         stripeCustomerId: session.customer,
         status: 'active',
