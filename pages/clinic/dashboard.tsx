@@ -27,11 +27,9 @@ export default function ClinicDashboard() {
 
   const navigationItems = [
     { name: 'ダッシュボード', href: '/clinic/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-    // { name: '治療履歴', href: '/clinic/treatment-history', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
-    // { name: '診療記録', href: '/clinic/medical-charts', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-    // { name: '在庫管理', href: '/clinic/inventory', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
-    // { name: 'スタッフスケジュール', href: '/clinic/staff-schedule', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-    // { name: '保険請求', href: '/clinic/insurance-claims', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+    { name: '患者', href: '/clinic/patients', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
+    { name: '予約', href: '/clinic/appointments', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+    { name: 'サブスクリプション', href: '/clinic/subscriptions', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
   ];
 
   const handlePayBaseFee = async () => {
@@ -66,7 +64,6 @@ export default function ClinicDashboard() {
       router.push('/');
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if logout fails, redirect to home
       router.push('/');
     }
   };
@@ -93,57 +90,56 @@ export default function ClinicDashboard() {
 
   return (
     <DashboardLayout allowedRoles={['clinic']}>
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-green-50">
         {/* Top Navigation */}
-        <nav className="bg-white shadow-sm">
+        <header className="sticky top-0 z-30 bg-gradient-to-r from-green-500 to-blue-600 shadow-lg rounded-b-2xl mb-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16 items-center">
-              <div className="flex items-center">
-                <h1 className="text-xl font-bold text-gray-800">クリニックダッシュボード</h1>
-                {/* Real-time indicator */}
-                <div className="ml-4 flex items-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="ml-2 text-sm text-gray-500">ライブ更新中</span>
-                </div>
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white shadow text-green-600 text-2xl font-extrabold mr-2">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                </span>
+                <h1 className="text-2xl font-extrabold text-white tracking-wide drop-shadow">クリニックダッシュボード</h1>
               </div>
               <div className="flex items-center space-x-4">
-              <button
-                onClick={handlePayBaseFee}
-                disabled={payingBaseFee}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-              >
-                {payingBaseFee ? '処理中...' : '基本料金を支払う'}
-              </button>
+                <button
+                  onClick={handlePayBaseFee}
+                  disabled={payingBaseFee}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-semibold rounded-lg bg-gradient-to-r from-green-500 to-green-700 text-white shadow hover:from-green-600 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transition disabled:opacity-50"
+                >
+                  {payingBaseFee ? '処理中...' : '基本料金を支払う'}
+                </button>
                 <button
                   onClick={handleLogout}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-semibold rounded-lg bg-gradient-to-r from-red-500 to-red-700 text-white shadow hover:from-red-600 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition"
                 >
+                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7"/></svg>
                   ログアウト
                 </button>
               </div>
             </div>
           </div>
-        </nav>
+        </header>
 
         <div className="flex">
           {/* Sidebar Navigation */}
-          <div className="w-64 bg-white shadow-sm h-screen">
-            <nav className="mt-5 px-2">
-              <div className="space-y-1">
+          <aside className="w-64 min-h-screen bg-gradient-to-b from-green-100 to-blue-50 shadow-xl rounded-r-2xl flex flex-col py-6 px-2">
+            <nav className="flex-1">
+              <div className="space-y-2">
                 {navigationItems.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${router.pathname === item.href
-                        ? 'bg-gray-100 text-gray-900'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      }`}
+                    className={`group flex items-center px-4 py-3 text-base font-semibold rounded-xl transition-all duration-150 ${router.pathname === item.href
+                      ? 'bg-gradient-to-r from-green-400 to-blue-400 text-white shadow-lg'
+                      : 'text-green-700 hover:bg-green-200 hover:text-green-900'
+                    }`}
                   >
                     <svg
                       className={`mr-3 h-6 w-6 ${router.pathname === item.href
-                          ? 'text-gray-500'
-                          : 'text-gray-400 group-hover:text-gray-500'
-                        }`}
+                        ? 'text-white'
+                        : 'text-green-400 group-hover:text-green-600'
+                      }`}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -155,24 +151,24 @@ export default function ClinicDashboard() {
                 ))}
               </div>
             </nav>
-          </div>
+          </aside>
 
           {/* Main Content */}
-          <div className="flex-1 p-6">
+          <main className="flex-1 p-6">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {/* Total Patients */}
-              <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="bg-white overflow-hidden shadow rounded-lg border-t-4 border-green-400 hover:shadow-lg transition">
                 <div className="p-5">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">総患者数</dt>
+                        <dt className="text-sm font-medium text-green-600 truncate">総患者数</dt>
                         <dd className="flex items-baseline">
                           <div className="text-2xl font-semibold text-gray-900">
                             {statsLoading ? '...' : stats.totalPatients}
@@ -183,19 +179,18 @@ export default function ClinicDashboard() {
                   </div>
                 </div>
               </div>
-
               {/* Today's Appointments */}
-              <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="bg-white overflow-hidden shadow rounded-lg border-t-4 border-blue-400 hover:shadow-lg transition">
                 <div className="p-5">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">今日の予約</dt>
+                        <dt className="text-sm font-medium text-blue-600 truncate">今日の予約</dt>
                         <dd className="flex items-baseline">
                           <div className="text-2xl font-semibold text-gray-900">
                             {statsLoading ? '...' : stats.appointmentsToday}
@@ -206,42 +201,18 @@ export default function ClinicDashboard() {
                   </div>
                 </div>
               </div>
-
-              {/* Pending Appointments */}
-              <div className="bg-white overflow-hidden shadow rounded-lg">
+              {/* Total Revenue */}
+              <div className="bg-white overflow-hidden shadow rounded-lg border-t-4 border-yellow-400 hover:shadow-lg transition">
                 <div className="p-5">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">保留中の予約</dt>
-                        <dd className="flex items-baseline">
-                          <div className="text-2xl font-semibold text-gray-900">
-                            {statsLoading ? '...' : stats.pendingAppointments}
-                          </div>
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Monthly Revenue */}
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                       </svg>
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">今月の収益</dt>
+                        <dt className="text-sm font-medium text-yellow-600 truncate">総収益</dt>
                         <dd className="flex items-baseline">
                           <div className="text-2xl font-semibold text-gray-900">
                             {statsLoading ? '...' : formatCurrency(stats.revenueThisMonth)}
@@ -252,20 +223,22 @@ export default function ClinicDashboard() {
                   </div>
                 </div>
               </div>
-              {/* Total Clinic Commission */}
-              <div className="bg-white overflow-hidden shadow rounded-lg">
+              {/* Clinic Commission */}
+              <div className="bg-white overflow-hidden shadow rounded-lg border-t-4 border-purple-400 hover:shadow-lg transition">
                 <div className="p-5">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                      <svg className="h-6 w-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">手数料合計</dt>
+                        <dt className="text-sm font-medium text-purple-600 truncate">クリニック手数料</dt>
                         <dd className="flex items-baseline">
-                          <div className="text-2xl font-semibold text-green-700">¥{totalClinicCommission.toLocaleString()}</div>
+                          <div className="text-2xl font-semibold text-gray-900">
+                            {subsLoading ? '...' : formatCurrency(totalClinicCommission)}
+                          </div>
                         </dd>
                       </dl>
                     </div>
@@ -274,38 +247,33 @@ export default function ClinicDashboard() {
               </div>
             </div>
 
-            {/* Activity Log */}
-            <div className="mt-8 bg-white shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                  アクティビティログ
-                  {activitiesLoading && <span className="ml-2 text-sm text-gray-500">(更新中...)</span>}
-                </h3>
-                {activities.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">アクティビティがありません</p>
+            {/* Activity Feed */}
+            <div className="mt-8">
+              <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+                <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" /></svg>
+                アクティビティログ
+              </h2>
+              <div className="bg-white shadow rounded-lg p-4 divide-y divide-gray-100">
+                {activitiesLoading ? (
+                  <div>Loading...</div>
+                ) : activities.length === 0 ? (
+                  <div className="text-gray-500">アクティビティがありません。</div>
                 ) : (
-                  <div className="space-y-3">
-                    {activities.map((activity) => (
-                      <div key={activity.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-900">{activity.description}</p>
-                          <p className="text-xs text-gray-500">
-                            {activity.timestamp.toLocaleString('ja-JP')}
-                            {activity.userName && ` • ${activity.userName}`}
-                          </p>
-                        </div>
+                  activities.map((activity, idx) => (
+                    <div key={idx} className="py-3 flex items-center gap-3">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" /></svg>
+                      </span>
+                      <div>
+                        <div className="font-medium text-gray-800">{activity.description}</div>
+                        <div className="text-xs text-gray-400">{activity.timestamp && activity.timestamp.toLocaleString('ja-JP')}</div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))
                 )}
               </div>
             </div>
-          </div>
+          </main>
         </div>
       </div>
     </DashboardLayout>
