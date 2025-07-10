@@ -133,7 +133,13 @@ export default function Home() {
               <span className="text-3xl text-blue-600 drop-shadow"><FaClinicMedical /></span>
               <h1 className="text-2xl font-extrabold text-blue-900 tracking-tight">ヘルスサポートシステム</h1>
             </div>
-            <div>
+            <div className=''>
+              <button
+                onClick={handleClinicLogin}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 shadow-lg transition mr-8"
+              >
+                <FaClinicMedical className="mr-2" /> クリニックログイン
+              </button>
               <button
                 onClick={handleAdminLogin}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 shadow-md"
@@ -148,8 +154,8 @@ export default function Home() {
       {/* Hero Section */}
       <section className="flex-1 flex flex-col justify-center items-center text-center py-16 px-4 bg-gradient-to-br from-blue-100/60 to-purple-100/60">
         <div className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-xl p-10 max-w-2xl mx-auto mb-8 border border-blue-100">
-          <h2 className="text-4xl sm:text-5xl font-extrabold text-blue-900 mb-4 drop-shadow-lg">ようこそ、<span className="text-blue-600">ヘルスサポート</span>の世界へ</h2>
-          <p className="mt-2 text-lg sm:text-2xl text-gray-600 max-w-2xl mx-auto mb-8">健康とウェルネスの信頼できるパートナー。患者様、クリニック、管理者のためのスマートなサブスクリプション管理。</p>
+          <h2 className="text-4xl sm:text-4xl font-extrabold text-blue-900 mb-4 drop-shadow-lg">ようこそ、ヘルスサポートの世界へ</h2>
+          <p className="mt-2 text-lg sm:text-base text-gray-600 max-w-2xl mx-auto mb-8">健康とウェルネスの信頼できるパートナー。患者様、クリニック、のためのスマートなサブスクリプションです。</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
             <button
               onClick={handlePatientLogin}
@@ -157,12 +163,7 @@ export default function Home() {
             >
               <FaUser className="mr-2" /> 患者ログイン
             </button>
-            <button
-              onClick={handleClinicLogin}
-              className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-lg font-semibold rounded-md text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 shadow-lg transition"
-            >
-              <FaClinicMedical className="mr-2" /> クリニックログイン
-            </button>
+
           </div>
         </div>
       </section>
@@ -177,13 +178,13 @@ export default function Home() {
               className={`relative p-8 bg-white border rounded-2xl shadow-lg flex flex-col transition-transform transform hover:scale-105 cursor-pointer ${plan.name === 'プレミアム' ? 'bg-gradient-to-br from-yellow-50 to-white' : ''}`}
             >
               {/* Badge for popular plan */}
-              {idx === 2 && (
+              {idx === 1 && (
                 <span className="absolute top-4 right-4 bg-yellow-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow"><FaCrown className="inline mr-1" />人気</span>
               )}
               <div className="flex items-center gap-2 mb-2">
                 {idx === 0 && <FaRegStar className="text-blue-400" />}
-                {idx === 1 && <FaMedal className="text-green-400" />}
-                {idx === 2 && <FaCrown className="text-yellow-400" />}
+                {idx === 2 && <FaMedal className="text-green-400" />}
+                {idx === 1 && <FaCrown className="text-yellow-400" />}
                 <h3 className="text-2xl font-semibold text-gray-900">{plan.name}</h3>
               </div>
               <p className="mt-2 text-gray-500 min-h-[48px]">{plan.description}</p>
@@ -192,7 +193,7 @@ export default function Home() {
               </div>
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <p className="text-sm font-semibold text-gray-600">料金内訳:</p>
-                <ul className="mt-2 space-y-2">
+                {/* <ul className="mt-2 space-y-2">
                   <li className="flex items-center gap-2">
                     <FaClinicMedical className="text-green-500" />
                     <span className="text-sm text-gray-700">クリニック受取: ¥{plan.commission.toLocaleString()}</span>
@@ -201,7 +202,7 @@ export default function Home() {
                     <FaCrown className="text-purple-500" />
                     <span className="text-sm text-gray-700">会社受取: ¥{plan.companyCut.toLocaleString()}</span>
                   </li>
-                </ul>
+                </ul> */}
               </div>
               <ul role="list" className="mt-6 space-y-4 flex-1">
                 {plan.features.map((feature) => (
