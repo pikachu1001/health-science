@@ -240,7 +240,7 @@ export default function PatientDashboard() {
                     onClick={() => handleSelectPlan(plan)}
                   >
                     {/* Badge for popular plan */}
-                    {idx === 2 && (
+                    {idx === 1 && (
                       <span className="absolute top-4 right-4 bg-yellow-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow"><FaCrown className="inline mr-1" />人気</span>
                     )}
                     <div className="flex items-center gap-2 mb-2">
@@ -253,19 +253,7 @@ export default function PatientDashboard() {
                     <div className="mt-6">
                       <p className="text-4xl font-extrabold text-blue-900">¥{plan.price.toLocaleString()}<span className="text-lg font-medium text-gray-500">/月</span></p>
                     </div>
-                    <div className="mt-6 pt-6 border-t border-gray-200">
-                      <p className="text-sm font-semibold text-gray-600">料金内訳:</p>
-                      <ul className="mt-2 space-y-2">
-                        <li className="flex items-center gap-2">
-                          <FaHospital className="text-green-500" />
-                          <span className="text-sm text-gray-700">クリニック受取: ¥{plan.commission.toLocaleString()}</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <FaCrown className="text-purple-500" />
-                          <span className="text-sm text-gray-700">会社受取: ¥{plan.companyCut.toLocaleString()}</span>
-                        </li>
-                      </ul>
-                    </div>
+                    
                     <ul role="list" className="mt-6 space-y-4 flex-1">
                       {plan.features.map((feature) => (
                         <li key={feature} className="flex items-center gap-2 text-blue-700">
@@ -304,19 +292,7 @@ export default function PatientDashboard() {
                       <div className="mt-4">
                         <p className="text-3xl font-extrabold text-blue-900">¥{selectedPlan.price.toLocaleString()}<span className="text-lg font-medium text-gray-500">/月</span></p>
                       </div>
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <p className="text-sm font-semibold text-gray-600">料金内訳:</p>
-                        <ul className="mt-2 space-y-2">
-                          <li className="flex items-center gap-2">
-                            <FaHospital className="text-green-500" />
-                            <span className="text-sm text-gray-700">クリニック受取: ¥{selectedPlan.commission.toLocaleString()}</span>
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <FaCrown className="text-purple-500" />
-                            <span className="text-sm text-gray-700">会社受取: ¥{selectedPlan.companyCut.toLocaleString()}</span>
-                          </li>
-                        </ul>
-                      </div>
+                      
                       <ul role="list" className="mt-4 space-y-4 flex-1">
                         {selectedPlan.features.map((feature) => (
                           <li key={feature} className="flex items-center gap-2 text-blue-700">
