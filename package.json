@@ -7,7 +7,8 @@
     "dev": "next dev",
     "start": "next start",
     "lint": "next lint",
-    "create-admin": "ts-node scripts/create-admin.ts"
+    "create-admin": "ts-node scripts/create-admin.ts",
+    "test-activity-feed": "node scripts/test-activity-feed.js"
   },
   "dependencies": {
     "@firebase/auth": "^1.10.7",

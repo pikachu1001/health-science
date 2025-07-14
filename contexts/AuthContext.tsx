@@ -10,6 +10,7 @@ import {
 import { auth } from '../lib/firebase';
 import { getFirestore, doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { UserProfile } from '../lib/firestore-types';
+import { createUserRegistrationActivity } from '../lib/authHelpers';
 
 interface AuthContextType {
   user: User | null;
@@ -82,6 +83,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         baseFeeStatus: 'pending',
       });
     }
+
+    // Create activity feed entry for user registration
+    await createUserRegistrationActivity(user.uid, role, details);
 
     // --- Post-signup check: Wait for user doc to exist ---
     let retries = 0;

@@ -56,6 +56,32 @@ function usePatientCountsByClinic() {
   return counts;
 }
 
+// Fetch all patients
+function useAllPatients() {
+  const [patients, setPatients] = useState<any[]>([]);
+  useEffect(() => {
+    if (!db) return;
+    const unsub = onSnapshot(collection(db, 'patients'), (snapshot) => {
+      setPatients(snapshot.docs.map(doc => ({ patientId: doc.id, ...doc.data() })));
+    });
+    return () => unsub();
+  }, []);
+  return patients;
+}
+
+// Fetch all subscription plans
+function useAllSubscriptionPlans() {
+  const [plans, setPlans] = useState<any[]>([]);
+  useEffect(() => {
+    if (!db) return;
+    const unsub = onSnapshot(collection(db, 'subscriptionPlans'), (snapshot) => {
+      setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return () => unsub();
+  }, []);
+  return plans;
+}
+
 export default function AdminDashboard() {
   const { user, loading, userData, logout } = useAuth();
   const router = useRouter();
@@ -72,6 +98,8 @@ export default function AdminDashboard() {
   const { subscriptions, loading: subsLoading, error: subsError } = useSubscriptionStatus();
 
   const patientCounts = usePatientCountsByClinic();
+  const patients = useAllPatients();
+  const plans = useAllSubscriptionPlans();
 
   const navigationItems = [
     { name: 'ダッシュボード', href: '/admin/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -144,7 +172,13 @@ export default function AdminDashboard() {
         <svg className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" /></svg>
       ),
     },
-    // 他のタイプもここに追加できます
+    subscription_cancelled: {
+      label: 'サブスクリプションキャンセル',
+      color: 'bg-orange-100 text-orange-800',
+      icon: (
+        <svg className="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+      ),
+    },
   };
 
   return (
@@ -393,6 +427,37 @@ export default function AdminDashboard() {
                           <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" /></svg>
                         ),
                       };
+                      // Enhanced message display with better formatting
+                      let enhancedMessage = activity.message;
+                      let additionalInfo = '';
+                      
+                      if (activity.details && typeof activity.details === 'object') {
+                        const details: any = activity.details;
+                        
+                        // Add additional context based on activity type
+                        if (activity.type === 'new_signup') {
+                          if (details.patientName && details.clinicName) {
+                            additionalInfo = `クリニック: ${details.clinicName}`;
+                          } else if (details.clinicName) {
+                            additionalInfo = `クリニック名: ${details.clinicName}`;
+                          }
+                        } else if (activity.type === 'payment_failed' || activity.type === 'subscription_cancelled') {
+                          if (details.patientName && details.clinicName) {
+                            additionalInfo = `患者: ${details.patientName} | クリニック: ${details.clinicName}`;
+                          } else if (details.patientName) {
+                            additionalInfo = `患者: ${details.patientName}`;
+                          }
+                        } else if (activity.type === 'base_fee_paid') {
+                          if (details.clinicName) {
+                            additionalInfo = `クリニック: ${details.clinicName}`;
+                          }
+                        }
+                        
+                        // Add amount information if available
+                        if (details.amount && details.amount !== 'base_fee') {
+                          additionalInfo += additionalInfo ? ` | 金額: ¥${details.amount.toLocaleString()}` : `金額: ¥${details.amount.toLocaleString()}`;
+                        }
+                      }
                       return (
                         <li key={activity.activityId} className="flex items-center px-4 py-3 my-1 rounded-lg bg-gray-50 hover:bg-gray-100 transition">
                           <div className="flex-shrink-0 mr-3">
@@ -400,7 +465,8 @@ export default function AdminDashboard() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold mr-2 align-middle ${typeInfo.color}`}>{typeInfo.label}</span>
-                            <span className="align-middle text-gray-700 text-sm">{activity.message}</span>
+                            <span className="align-middle text-gray-700 text-sm">{enhancedMessage}</span>
+                            {additionalInfo && <span className="align-middle text-gray-500 text-xs ml-2">({additionalInfo})</span>}
                           </div>
                           <div className="ml-4 flex-shrink-0 text-xs text-gray-400 text-right min-w-[110px]">{activityDate}</div>
                         </li>

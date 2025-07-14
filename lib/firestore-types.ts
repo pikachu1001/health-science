@@ -88,13 +88,18 @@ export interface SubscriptionPlan {
 // Activity Feed
 export interface ActivityFeed {
   activityId: string;
-  type: 'new_signup' | 'payment_success' | 'payment_failed';
+  type: 'new_signup' | 'payment_success' | 'payment_failed' | 'base_fee_paid' | 'subscription_cancelled';
   userId: string;
   clinicId: string;
   message: string;
   timestamp: any; // Firestore Timestamp
   details?: {
     plan?: string;
+    planId?: string;
     amount?: number;
+    patientName?: string;
+    patientId?: string;
+    clinicName?: string;
+    clinicId?: string;
   };
 } 

@@ -17,6 +17,44 @@ async function getPlanByPriceId(priceId) {
     return { id: planDoc.id, ...planDoc.data() };
 }
 
+// Helper to get user details by userId
+async function getUserDetails(userId) {
+    try {
+        const userSnap = await adminDb.collection('users').doc(userId).get();
+        if (userSnap.exists) {
+            const userData = userSnap.data();
+            return {
+                firstName: userData.firstName || '',
+                lastName: userData.lastName || '',
+                email: userData.email || '',
+                displayName: userData.displayName || ''
+            };
+        }
+        return null;
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        return null;
+    }
+}
+
+// Helper to get clinic details by clinicId
+async function getClinicDetails(clinicId) {
+    try {
+        const clinicSnap = await adminDb.collection('clinics').doc(clinicId).get();
+        if (clinicSnap.exists) {
+            const clinicData = clinicSnap.data();
+            return {
+                clinicName: clinicData.clinicName || '',
+                email: clinicData.email || ''
+            };
+        }
+        return null;
+    } catch (error) {
+        console.error('Error fetching clinic details:', error);
+        return null;
+    }
+}
+
 const handleCheckoutCompleted = async (session) => {
     const { userId, type } = session.metadata;
     const stripeSubscriptionId = session.subscription;
@@ -28,6 +66,10 @@ const handleCheckoutCompleted = async (session) => {
 
     // If this is a clinic base fee payment
     if (type === 'clinic_base_fee') {
+        // Get clinic details for the message
+        const clinicDetails = await getClinicDetails(userId);
+        const clinicName = clinicDetails ? clinicDetails.clinicName : 'Unknown Clinic';
+        
         // Update the clinic's baseFeeStatus and store Stripe Customer ID in Firestore
         const clinicRef = adminDb.collection('clinics').doc(userId);
         await clinicRef.update({
@@ -36,17 +78,20 @@ const handleCheckoutCompleted = async (session) => {
             baseFeeStripeCustomerId: session.customer,
             baseFeeUpdatedAt: new Date()
         });
-        // Add activity feed entry
+        
+        // Add activity feed entry with enhanced message
         const activityRef = adminDb.collection('activity_feed').doc();
         await activityRef.set({
             activityId: activityRef.id,
             type: 'base_fee_paid',
             userId,
             clinicId: userId,
-            message: `クリニックの基本料金が支払われました。`,
+            message: `${clinicName} (クリニック) が基本料金を支払いました。`,
             timestamp: new Date(),
             details: {
                 amount: 'base_fee',
+                clinicName: clinicName,
+                clinicId: userId
             },
         });
         console.log(`Clinic base fee paid and status updated for clinic ${userId}`);
@@ -66,6 +111,13 @@ const handleCheckoutCompleted = async (session) => {
     // Fetch patient document to get clinicId
     const patientSnap = await adminDb.collection('patients').doc(userId).get();
     const clinicId = patientSnap.exists ? patientSnap.data().clinicId : null;
+
+    // Get user and clinic details for detailed messages
+    const userDetails = await getUserDetails(userId);
+    const clinicDetails = clinicId ? await getClinicDetails(clinicId) : null;
+    
+    const patientName = userDetails ? `${userDetails.lastName}${userDetails.firstName}` : 'Unknown Patient';
+    const clinicName = clinicDetails ? clinicDetails.clinicName : 'Unknown Clinic';
 
     // Create the subscription document in Firestore
     const subscriptionRef = adminDb.collection('subscriptions').doc();
@@ -91,18 +143,23 @@ const handleCheckoutCompleted = async (session) => {
     };
     await subscriptionRef.set(subscriptionData);
 
-    // Create an activity feed event
+    // Enhanced message for subscription signup
     const activityRef = adminDb.collection('activity_feed').doc();
     const activityData = {
         activityId: activityRef.id,
         type: 'new_signup',
         userId: userId,
         clinicId: clinicId || 'unknown',
-        message: `新しい患者が${plan.name}に登録しました。`,
+        message: `${patientName} (患者) が ${clinicName} (クリニック) の「${plan.name}」に登録しました。 (金額 ¥${plan.price.toLocaleString()})`,
         timestamp: new Date(),
         details: {
             plan: plan.name,
+            planId: plan.id,
             amount: plan.price,
+            patientName: patientName,
+            patientId: userId,
+            clinicName: clinicName,
+            clinicId: clinicId
         },
     };
     await activityRef.set(activityData);
@@ -126,23 +183,39 @@ const handlePaymentFailed = async (invoice) => {
         return;
     }
     const subDoc = subSnap.docs[0];
+    const subData = subDoc.data();
+    
+    // Get user and clinic details for detailed message
+    const userDetails = await getUserDetails(subData.patientId);
+    const clinicDetails = await getClinicDetails(subData.clinicId);
+    
+    const patientName = userDetails ? `${userDetails.lastName}${userDetails.firstName}` : 'Unknown Patient';
+    const clinicName = clinicDetails ? clinicDetails.clinicName : 'Unknown Clinic';
+    const planName = subData.planSnapshot ? subData.planSnapshot.name : 'Unknown Plan';
+    
     await subDoc.ref.update({ status: 'suspended', updatedAt: new Date(), reminderSent: true });
-    // Add activity feed entry
+    
+    // Add activity feed entry with detailed message
     const activityRef = adminDb.collection('activity_feed').doc();
     await activityRef.set({
         activityId: activityRef.id,
         type: 'payment_failed',
-        userId: subDoc.data().patientId,
-        clinicId: subDoc.data().clinicId,
-        message: `患者のサブスクリプション支払いが失敗しました。リマインダーを送信しました。`,
+        userId: subData.patientId,
+        clinicId: subData.clinicId,
+        message: `${patientName}の${planName}支払いが失敗しました。リマインダーを送信しました。`,
         timestamp: new Date(),
         details: {
-            plan: subDoc.data().plan,
-            amount: subDoc.data().amount,
+            plan: planName,
+            planId: subData.planId,
+            amount: subData.amount,
+            patientName: patientName,
+            patientId: subData.patientId,
+            clinicName: clinicName,
+            clinicId: subData.clinicId
         },
     });
     // Simulate sending an email reminder
-    console.log(`Simulated: Sent payment failure reminder to user ${subDoc.data().patientId}`);
+    console.log(`Simulated: Sent payment failure reminder to user ${subData.patientId}`);
     console.log(`Marked subscription ${subDoc.id} as suspended due to payment failure.`);
 };
 
@@ -162,19 +235,35 @@ const handleSubscriptionDeleted = async (subscription) => {
         return;
     }
     const subDoc = subSnap.docs[0];
+    const subData = subDoc.data();
+    
+    // Get user and clinic details for detailed message
+    const userDetails = await getUserDetails(subData.patientId);
+    const clinicDetails = await getClinicDetails(subData.clinicId);
+    
+    const patientName = userDetails ? `${userDetails.lastName}${userDetails.firstName}` : 'Unknown Patient';
+    const clinicName = clinicDetails ? clinicDetails.clinicName : 'Unknown Clinic';
+    const planName = subData.planSnapshot ? subData.planSnapshot.name : 'Unknown Plan';
+    
     await subDoc.ref.update({ status: 'cancelled', updatedAt: new Date() });
-    // Add activity feed entry
+    
+    // Add activity feed entry with detailed message
     const activityRef = adminDb.collection('activity_feed').doc();
     await activityRef.set({
         activityId: activityRef.id,
         type: 'subscription_cancelled',
-        userId: subDoc.data().patientId,
-        clinicId: subDoc.data().clinicId,
-        message: `患者のサブスクリプションがキャンセルされました。`,
+        userId: subData.patientId,
+        clinicId: subData.clinicId,
+        message: `${patientName}の${planName}がキャンセルされました。`,
         timestamp: new Date(),
         details: {
-            plan: subDoc.data().plan,
-            amount: subDoc.data().amount,
+            plan: planName,
+            planId: subData.planId,
+            amount: subData.amount,
+            patientName: patientName,
+            patientId: subData.patientId,
+            clinicName: clinicName,
+            clinicId: subData.clinicId
         },
     });
     console.log(`Marked subscription ${subDoc.id} as cancelled due to Stripe event.`);

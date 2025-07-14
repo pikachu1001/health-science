@@ -5,6 +5,25 @@ import { useAuth } from '../../contexts/AuthContext';
 import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAllClinics } from '../../lib/real-time-hooks';
+// Define SubscriptionPlan locally to include 'code' field
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: number;
+  commission: number;
+  companyCut: number;
+  description: string;
+  features: string[];
+  priceId: string;
+  status: 'active' | 'inactive';
+  billingCycle: 'monthly' | 'yearly';
+  maxAppointments?: number;
+  maxPrescriptions?: number;
+  maxLabTests?: number;
+  createdAt?: any;
+  updatedAt?: any;
+  code?: string;
+}
 
 interface Patient {
   id: string;
@@ -32,6 +51,8 @@ interface Subscription {
     commission: number;
     companyCut: number;
   };
+  // Add plan field for Firestore compatibility
+  plan?: string;
 }
 
 function useAllPatients() {
@@ -76,6 +97,8 @@ const useAllSubscriptions = () => {
           status: d.status || 'cancelled',
           planId: d.planId || '',
           planSnapshot: d.planSnapshot || undefined,
+          // Add plan field for Firestore compatibility
+          plan: d.plan || undefined,
         };
       });
       setSubscriptions(data);
@@ -84,6 +107,24 @@ const useAllSubscriptions = () => {
   }, []);
   return subscriptions;
 };
+
+// Fetch all subscription plans
+function useAllSubscriptionPlans() {
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  useEffect(() => {
+    if (!db) return;
+    const unsubscribe = onSnapshot(collection(db, 'subscriptionPlans'), (snapshot) => {
+      const data: SubscriptionPlan[] = snapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<SubscriptionPlan, 'id'>),
+        code: docSnap.data().code || undefined, // Map code field
+      }));
+      setPlans(data);
+    });
+    return () => unsubscribe();
+  }, []);
+  return plans;
+}
 
 export default function PatientsPage() {
   const { user, loading, userData, logout } = useAuth();
@@ -96,6 +137,7 @@ export default function PatientsPage() {
   const patients = useAllPatients();
   const { clinics } = useAllClinics();
   const subscriptions = useAllSubscriptions();
+  const plans = useAllSubscriptionPlans();
 
   // Helper to get subscription status for a patient
   const getSubscriptionStatus = (patientId: string) => {
@@ -203,8 +245,9 @@ export default function PatientsPage() {
       (patient.email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const subscriptionStatus = getSubscriptionStatus(patient.id);
     const matchesStatus = statusFilter === 'all' || subscriptionStatus === statusFilter;
-    const subscription = subscriptions.find(s => s.patientId === patient.id);
-    const matchesPlan = planFilter === 'all' || (subscription && (subscription.planId === planFilter || getPlanName(subscription) === planFilter));
+    // Only consider active subscriptions for plan filtering
+    const activeSubscription = subscriptions.find(s => s.patientId === patient.id && s.status === 'active');
+    const matchesPlan = planFilter === 'all' || (activeSubscription && activeSubscription.planId === planFilter);
     return matchesSearch && matchesStatus && matchesPlan;
   });
 
@@ -333,9 +376,9 @@ export default function PatientsPage() {
                   onChange={(e) => setPlanFilter(e.target.value)}
                 >
                   <option value="all">すべてのプラン</option>
-                  {Array.from(new Set(subscriptions.map(s => s.planId).filter(Boolean))).map(planId => {
-                    const sub = subscriptions.find(s => s.planId === planId);
-                    const planName = sub && sub.planSnapshot && sub.planSnapshot.name ? sub.planSnapshot.name : planId;
+                  {Array.from(new Set(subscriptions.filter(s => s.status === 'active').map(s => s.planId).filter(Boolean))).map(planId => {
+                    const planObj = plans.find(p => p.id === planId);
+                    const planName = planObj ? planObj.name : planId;
                     return (
                       <option key={planId} value={planId}>{planName}</option>
                     );
@@ -377,7 +420,6 @@ export default function PatientsPage() {
                             return sub ? getPlanName(sub) : '未登録';
                           })()
                         }</div>
-                        <div className="text-sm text-gray-500">最終受診日: {patient.lastVisit}</div>
                       </td>
                       <td className={
                         getSubscriptionStatus(patient.id) === '有効' ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800' :
