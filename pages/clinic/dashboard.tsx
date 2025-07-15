@@ -12,7 +12,7 @@ export default function ClinicDashboard() {
   return (
     <DashboardLayout allowedRoles={['clinic']}>
       <ClinicLayout>
-        <></>
+        <div>1234</div>
       </ClinicLayout>
     </DashboardLayout>
   );
