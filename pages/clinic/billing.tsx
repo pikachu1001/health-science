@@ -170,8 +170,8 @@ export default function ClinicBillingPage() {
                                     ))}
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
+                </div>
+                </div>
                 </section>
             </ClinicLayout>
         </DashboardLayout>

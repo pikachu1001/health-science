@@ -503,6 +503,11 @@ export interface RealTimePatient {
   subscriptionPlan: string;
   totalEarnings: number;
   createdAt: Date;
+  // Add these fields for Firestore compatibility
+  firstName?: string;
+  lastName?: string;
+  subscriptionId?: string;
+  uid?: string;
 }
 
 export interface RealTimeInsuranceClaim {
@@ -804,17 +809,17 @@ export function useClinicDashboardStats(clinicId: string) {
       query(
         subscriptionsRef,
         where('clinicId', '==', clinicId),
-        where('status', '==', 'active'),
-        where('startDate', '>=', startOfMonth),
-        where('startDate', '<=', endOfMonth)
+        where('status', '==', 'active')
+        // Removed startDate filters to sum all active subscriptions
       ),
       (snapshot) => {
         let totalRevenue = 0;
         snapshot.forEach((doc) => {
           const data = doc.data();
-          // Assume each subscription has a 'price' field (number, in JPY)
-          if (typeof data.price === 'number') {
-            totalRevenue += data.price;
+          // Use clinicCommission as the clinic's actual income
+          const commission = data.clinicCommission;
+          if (typeof commission === 'number') {
+            totalRevenue += commission;
           }
         });
         setStats(prev => ({
@@ -845,6 +850,7 @@ export interface ActivityLog {
   userId?: string;
   userName?: string;
   metadata?: Record<string, any>;
+  message?: string; // Add message field for Firestore compatibility
 }
 
 export function useClinicActivityLog(clinicId: string, limitCount: number = 20) {
@@ -859,7 +865,7 @@ export function useClinicActivityLog(clinicId: string, limitCount: number = 20) 
     }
 
     const db = getFirestore();
-    const activitiesRef = collection(db, 'activityLogs');
+    const activitiesRef = collection(db, 'activity_feed');
     const q = query(
       activitiesRef,
       where('clinicId', '==', clinicId),

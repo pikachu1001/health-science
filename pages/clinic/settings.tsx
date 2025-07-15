@@ -92,9 +92,9 @@ export default function ClinicSettingsPage() {
         setNotifNewPatient(e.target.checked);
     };
 
-    return (
-        <DashboardLayout allowedRoles={['clinic']}>
-            <ClinicLayout>
+  return (
+    <DashboardLayout allowedRoles={['clinic']}>
+      <ClinicLayout>
                 <div className="max-w-5xl mx-auto py-4">
                     <h1 className="text-3xl font-extrabold mb-8 text-blue-900 tracking-tight flex items-center gap-3">
                         <FaHospital className="text-green-500" /> クリニック設定
@@ -198,10 +198,10 @@ export default function ClinicSettingsPage() {
                                     </label>
                                 </div>
                             </section>
-                        </div>
-                    </div>
-                </div>
-            </ClinicLayout>
-        </DashboardLayout>
-    );
+        </div>
+        </div>
+        </div>
+      </ClinicLayout>
+    </DashboardLayout>
+  );
 } 
