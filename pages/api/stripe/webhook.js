@@ -94,7 +94,6 @@ const handleCheckoutCompleted = async (session) => {
                 clinicId: userId
             },
         });
-        console.log(`Clinic base fee paid and status updated for clinic ${userId}`);
         return;
     }
 
@@ -164,7 +163,6 @@ const handleCheckoutCompleted = async (session) => {
     };
     await activityRef.set(activityData);
 
-    console.log(`Successfully created subscription ${subscriptionRef.id} for user ${userId}`);
 };
 
 const handlePaymentFailed = async (invoice) => {
@@ -215,8 +213,6 @@ const handlePaymentFailed = async (invoice) => {
         },
     });
     // Simulate sending an email reminder
-    console.log(`Simulated: Sent payment failure reminder to user ${subData.patientId}`);
-    console.log(`Marked subscription ${subDoc.id} as suspended due to payment failure.`);
 };
 
 const handleSubscriptionDeleted = async (subscription) => {
@@ -266,7 +262,6 @@ const handleSubscriptionDeleted = async (subscription) => {
             clinicId: subData.clinicId
         },
     });
-    console.log(`Marked subscription ${subDoc.id} as cancelled due to Stripe event.`);
 };
 
 export default async function handler(req, res) {

@@ -1,4 +1,4 @@
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection } from 'firebase/firestore';
 
 /**
  * Fetches a Firestore user profile with retries to avoid race conditions after login.
@@ -12,7 +12,6 @@ export async function fetchUserProfileWithRetry(uid: string, maxRetries = 5, del
     const db = getFirestore();
     let retries = 0;
     while (retries < maxRetries) {
-        console.log('fetchUserProfileWithRetry', uid, maxRetries, delayMs, 'try', retries + 1);
         try {
             const userDoc = await getDoc(doc(db, 'users', uid));
             if (userDoc.exists()) return userDoc.data();
@@ -45,7 +44,8 @@ export async function createActivityFeedEntry(data: {
 }) {
   try {
     const db = getFirestore();
-    const activityRef = doc(db, 'activity_feed');
+    const activityRef = doc(collection(db, 'activity_feed'));
+   
     await setDoc(activityRef, {
       activityId: activityRef.id,
       type: data.type,
@@ -55,9 +55,9 @@ export async function createActivityFeedEntry(data: {
       timestamp: serverTimestamp(),
       details: data.details || {},
     });
-    console.log(`Activity feed entry created: ${data.message}`);
   } catch (error) {
-    console.error('Error creating activity feed entry:', error);
+    console.error('[createActivityFeedEntry] Error creating activity feed entry:', error);
+    throw error;
   }
 }
 
@@ -65,12 +65,10 @@ export async function createActivityFeedEntry(data: {
 export async function createUserRegistrationActivity(userId: string, role: 'patient' | 'clinic', userDetails: any) {
   try {
     const db = getFirestore();
-    
     if (role === 'patient') {
       const patientName = userDetails.firstName && userDetails.lastName 
         ? `${userDetails.lastName}${userDetails.firstName}` 
         : 'Unknown Patient';
-      
       await createActivityFeedEntry({
         type: 'new_signup',
         userId: userId,
@@ -84,7 +82,6 @@ export async function createUserRegistrationActivity(userId: string, role: 'pati
       });
     } else if (role === 'clinic') {
       const clinicName = userDetails.clinicName || 'Unknown Clinic';
-      
       await createActivityFeedEntry({
         type: 'new_signup',
         userId: userId,
@@ -97,6 +94,7 @@ export async function createUserRegistrationActivity(userId: string, role: 'pati
       });
     }
   } catch (error) {
-    console.error('Error creating user registration activity:', error);
+    console.error('[createUserRegistrationActivity] Error creating user registration activity:', error);
+    throw error;
   }
 } 

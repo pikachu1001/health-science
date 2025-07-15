@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import { useClinicStats } from '../lib/real-time-hooks';
+import { useActivityFeed } from '../lib/real-time-hooks';
 
 interface ClinicLayoutProps {
   children: ReactNode;
@@ -22,6 +23,22 @@ export default function ClinicLayout({ children }: ClinicLayoutProps) {
   const [baseFeeError, setBaseFeeError] = useState('');
   const clinicId = user?.uid || '';
   const { stats: clinicStats } = useClinicStats(clinicId);
+  const { activities } = useActivityFeed(clinicId, 5);
+  const [notification, setNotification] = useState<string | null>(null);
+
+  // Show notification for new patient or subscription
+  useEffect(() => {
+    if (!activities || activities.length === 0) return;
+    const latest = activities[0];
+    if (
+      (latest.type === 'new_signup' || latest.type === 'payment_success') &&
+      (!notification || notification !== latest.message)
+    ) {
+      setNotification(latest.message);
+      const timer = setTimeout(() => setNotification(null), 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [activities]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -71,6 +88,12 @@ export default function ClinicLayout({ children }: ClinicLayoutProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-green-50">
+      {/* Notification Banner */}
+      {notification && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-fade-in">
+          <span className="font-bold">お知らせ:</span> {notification}
+        </div>
+      )}
       {/* Top Navigation */}
       <header className="sticky top-0 z-30 bg-gradient-to-r from-green-500 to-blue-600 shadow-lg rounded-b-2xl mb-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

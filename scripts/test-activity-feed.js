@@ -9,13 +9,11 @@ admin.initializeApp({
 const db = admin.firestore();
 
 async function testActivityFeed() {
-  console.log('🧪 Testing Enhanced Activity Feed Functionality...\n');
   
   const now = admin.firestore.Timestamp.now();
   
   try {
     // Test 1: Patient Registration Activity
-    console.log('📝 Test 1: Patient Registration Activity');
     const patientActivity = {
       activityId: 'test-patient-reg-1',
       type: 'new_signup',
@@ -32,10 +30,8 @@ async function testActivityFeed() {
     };
     
     await db.collection('activity_feed').doc('test-patient-reg-1').set(patientActivity);
-    console.log('✅ Created patient registration activity');
     
     // Test 2: Clinic Registration Activity
-    console.log('\n📝 Test 2: Clinic Registration Activity');
     const clinicActivity = {
       activityId: 'test-clinic-reg-1',
       type: 'new_signup',
@@ -50,10 +46,8 @@ async function testActivityFeed() {
     };
     
     await db.collection('activity_feed').doc('test-clinic-reg-1').set(clinicActivity);
-    console.log('✅ Created clinic registration activity');
     
     // Test 3: Patient Subscription Signup
-    console.log('\n📝 Test 3: Patient Subscription Signup');
     const subscriptionActivity = {
       activityId: 'test-subscription-1',
       type: 'new_signup',
@@ -73,10 +67,8 @@ async function testActivityFeed() {
     };
     
     await db.collection('activity_feed').doc('test-subscription-1').set(subscriptionActivity);
-    console.log('✅ Created subscription signup activity');
     
     // Test 4: Payment Failure
-    console.log('\n📝 Test 4: Payment Failure');
     const paymentFailureActivity = {
       activityId: 'test-payment-failure-1',
       type: 'payment_failed',
@@ -96,10 +88,8 @@ async function testActivityFeed() {
     };
     
     await db.collection('activity_feed').doc('test-payment-failure-1').set(paymentFailureActivity);
-    console.log('✅ Created payment failure activity');
     
     // Test 5: Subscription Cancellation
-    console.log('\n📝 Test 5: Subscription Cancellation');
     const cancellationActivity = {
       activityId: 'test-cancellation-1',
       type: 'subscription_cancelled',
@@ -119,10 +109,8 @@ async function testActivityFeed() {
     };
     
     await db.collection('activity_feed').doc('test-cancellation-1').set(cancellationActivity);
-    console.log('✅ Created subscription cancellation activity');
     
     // Test 6: Clinic Base Fee Payment
-    console.log('\n📝 Test 6: Clinic Base Fee Payment');
     const baseFeeActivity = {
       activityId: 'test-base-fee-1',
       type: 'base_fee_paid',
@@ -138,18 +126,6 @@ async function testActivityFeed() {
     };
     
     await db.collection('activity_feed').doc('test-base-fee-1').set(baseFeeActivity);
-    console.log('✅ Created base fee payment activity');
-    
-    console.log('\n🎉 All test activities created successfully!');
-    console.log('\n📊 Activity Feed Examples:');
-    console.log('1. "田中太郎が新規患者として登録しました。"');
-    console.log('2. "佐藤クリニックが新規クリニックとして登録しました。"');
-    console.log('3. "田中太郎がプレミアムプランに登録しました。"');
-    console.log('4. "山田花子のベーシックプラン支払いが失敗しました。リマインダーを送信しました。"');
-    console.log('5. "鈴木一郎のスタンダードプランがキャンセルされました。"');
-    console.log('6. "佐藤クリニックが基本料金を支払いました。"');
-    
-    console.log('\n🔍 Check the admin dashboard to see these activities in real-time!');
     
   } catch (error) {
     console.error('❌ Error creating test activities:', error);
@@ -157,7 +133,6 @@ async function testActivityFeed() {
 }
 
 async function cleanupTestData() {
-  console.log('🧹 Cleaning up test activity feed data...\n');
   
   try {
     const testIds = [
@@ -171,10 +146,8 @@ async function cleanupTestData() {
     
     for (const id of testIds) {
       await db.collection('activity_feed').doc(id).delete();
-      console.log(`✅ Deleted test activity: ${id}`);
     }
     
-    console.log('\n🎉 Test data cleanup completed!');
     
   } catch (error) {
     console.error('❌ Error cleaning up test data:', error);

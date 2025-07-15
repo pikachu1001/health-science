@@ -7,7 +7,6 @@ const rl = readline.createInterface({
 });
 
 const createAdmin = async () => {
-    console.log('Creating a new admin user...');
 
     const email = await new Promise((resolve) => {
         rl.question('Enter admin email: ', resolve);
@@ -19,7 +18,6 @@ const createAdmin = async () => {
 
 
     try {
-        console.log(`Attempting to create admin user with email: ${email}...`);
         // Create the user in Firebase Auth
         const userRecord = await adminAuth.createUser({
             email,
@@ -36,10 +34,6 @@ const createAdmin = async () => {
             role: 'admin',
             createdAt: new Date(),
         });
-        console.log('Successfully created new admin user:');
-        console.log(`- UID: ${userRecord.uid}`);
-        console.log(`- Email: ${userRecord.email}`);
-        console.log('- Role: admin (set via custom claim and in Firestore)');
     } catch (error) {
         const err = error as any;
         console.error('Error creating admin user:', err.message);

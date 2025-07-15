@@ -10,7 +10,6 @@ admin.initializeApp({
 const db = admin.firestore();
 
 async function addTestData() {
-  console.log('🚀 Adding test data for real-time dashboard...');
   
   const testClinicId = 'test-clinic-123';
   const now = admin.firestore.Timestamp.now();
@@ -42,7 +41,6 @@ async function addTestData() {
 
     for (const appointment of appointments) {
       await db.collection('appointments').add(appointment);
-      console.log(`✅ Added appointment for ${appointment.patientName}`);
     }
 
     // Add test patients
@@ -73,7 +71,6 @@ async function addTestData() {
 
     for (const patient of patients) {
       await db.collection('patients').add(patient);
-      console.log(`✅ Added patient ${patient.name}`);
     }
 
     // Add test insurance claims
@@ -95,7 +92,6 @@ async function addTestData() {
 
     for (const claim of claims) {
       await db.collection('insuranceClaims').add(claim);
-      console.log(`✅ Added insurance claim for ${claim.patientName}`);
     }
 
     // Add test subscriptions
@@ -118,7 +114,6 @@ async function addTestData() {
 
     for (const subscription of subscriptions) {
       await db.collection('subscriptions').add(subscription);
-      console.log(`✅ Added subscription for patient ${subscription.patientId}`);
     }
 
     // Add test activity logs
@@ -151,15 +146,7 @@ async function addTestData() {
 
     for (const activity of activities) {
       await db.collection('activityLogs').add(activity);
-      console.log(`✅ Added activity: ${activity.description}`);
     }
-
-    console.log('\n🎉 Test data added successfully!');
-    console.log(`📊 Dashboard should now show real-time updates for clinic ID: ${testClinicId}`);
-    console.log('\n📝 To test the real-time functionality:');
-    console.log('1. Open the clinic dashboard');
-    console.log('2. Look for the "ライブ更新中" indicator');
-    console.log('3. Add more data using this script to see live updates');
     
   } catch (error) {
     console.error('❌ Error adding test data:', error);
@@ -167,7 +154,6 @@ async function addTestData() {
 }
 
 async function cleanupTestData() {
-  console.log('🧹 Cleaning up test data...');
   
   const testClinicId = 'test-clinic-123';
   const collections = ['appointments', 'patients', 'insuranceClaims', 'subscriptions', 'activityLogs'];
@@ -184,10 +170,8 @@ async function cleanupTestData() {
       });
       
       await batch.commit();
-      console.log(`✅ Cleaned up ${snapshot.size} documents from ${collectionName}`);
     }
     
-    console.log('🎉 Test data cleaned up successfully!');
   } catch (error) {
     console.error('❌ Error cleaning up test data:', error);
   }

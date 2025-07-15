@@ -11,7 +11,6 @@ try {
                 privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
             }),
         });
-        console.log('Firebase Admin SDK Initialized.');
     }
 } catch (error) {
     console.error(

@@ -136,7 +136,13 @@ export default function PatientRegister() {
     if (!validateForm()) {
       return;
     }
-
+    if (!formData.clinicId) {
+      setErrors(prev => ({
+        ...prev,
+        clinicId: 'クリニックを選択してください。'
+      }));
+      return;
+    }
     setIsLoading(true);
     try {
       // Create user account with Firebase
@@ -147,7 +153,6 @@ export default function PatientRegister() {
         address: formData.address,
         dateOfBirth: formData.dateOfBirth,
       });
-      
       router.push('/patient/dashboard');
     } catch (err) {
       console.error('Registration error:', err);
