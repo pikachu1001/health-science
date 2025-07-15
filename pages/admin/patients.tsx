@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAllClinics } from '../../lib/real-time-hooks';
+import DashboardLayout from '../../components/DashboardLayout';
 // Define SubscriptionPlan locally to include 'code' field
 interface SubscriptionPlan {
   id: string;
@@ -274,6 +275,7 @@ export default function PatientsPage() {
   };
 
   return (
+    <DashboardLayout allowedRoles={['admin']}>
     <div className="min-h-screen bg-gray-100">
       {/* Top Navigation */}
       <header className="sticky top-0 z-30 bg-gradient-to-r from-blue-500 to-blue-700 shadow-lg rounded-b-2xl mb-4">
@@ -521,5 +523,6 @@ export default function PatientsPage() {
         </div>
       )}
     </div>
+    </DashboardLayout>
   );
 } 

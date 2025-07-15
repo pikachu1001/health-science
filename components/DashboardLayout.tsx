@@ -17,11 +17,7 @@ export default function DashboardLayout({ children, allowedRoles }: DashboardLay
       return; // Do nothing while auth state is loading
     }
 
-    if (!user) {
-      // If not logged in, redirect to the main login page.
-      router.push('/auth/patient/login');
-      return;
-    }
+    
 
     if (userData && !allowedRoles.includes(userData.role)) {
       // If user is logged in but at the wrong dashboard, redirect to their correct one.

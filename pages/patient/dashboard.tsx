@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { doc, getDoc, onSnapshot, collection, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { FaUser, FaSignOutAlt, FaHospital, FaCheckCircle, FaRegStar, FaCrown, FaMedal } from 'react-icons/fa';
+import DashboardLayout from '../../components/DashboardLayout';
 
 type SubscriptionPlan = {
   id: string;
@@ -180,6 +181,7 @@ export default function PatientDashboard() {
   const isSubscribed = subscriptionStatus === 'アクティブ' || subscriptionStatus === 'トライアル中';
 
   return (
+    <DashboardLayout allowedRoles={['patient']}>
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-white">
       {/* Sticky Header */}
       <header className="sticky top-0 z-20 bg-gradient-to-r from-blue-100 via-white to-blue-50 shadow-md px-4 py-4 flex justify-between items-center border-b border-blue-200">
@@ -325,5 +327,6 @@ export default function PatientDashboard() {
         &copy; {new Date().getFullYear()} Health Science SaaS. All rights reserved.
       </footer>
     </div>
+    </DashboardLayout>
   );
 } 

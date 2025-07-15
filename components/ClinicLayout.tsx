@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import { useClinicStats } from '../lib/real-time-hooks';
 import { useActivityFeed } from '../lib/real-time-hooks';
+import { updateDoc, arrayUnion, doc as firestoreDoc, getFirestore } from 'firebase/firestore';
 
 interface ClinicLayoutProps {
   children: ReactNode;
@@ -26,19 +27,27 @@ export default function ClinicLayout({ children }: ClinicLayoutProps) {
   const { activities } = useActivityFeed(clinicId, 5);
   const [notification, setNotification] = useState<string | null>(null);
 
-  // Show notification for new patient or subscription
+  // Show notification for new patient or subscription only if not already displayed for this clinic
   useEffect(() => {
     if (!activities || activities.length === 0) return;
     const latest = activities[0];
+    // Only show if not already displayed for this clinic
     if (
       (latest.type === 'new_signup' || latest.type === 'payment_success') &&
-      (!notification || notification !== latest.message)
+      latest.activityId &&
+      (!(latest as any).displayedFor || !(latest as any).displayedFor.includes(clinicId))
     ) {
       setNotification(latest.message);
-      const timer = setTimeout(() => setNotification(null), 6000);
+      // Mark as displayed in Firestore
+      const db = getFirestore();
+      const activityRef = firestoreDoc(db, 'activity_feed', latest.activityId);
+      updateDoc(activityRef, {
+        displayedFor: arrayUnion(clinicId)
+      });
+      const timer = setTimeout(() => setNotification(null), 2000);
       return () => clearTimeout(timer);
     }
-  }, [activities]);
+  }, [activities, clinicId]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -79,10 +88,10 @@ export default function ClinicLayout({ children }: ClinicLayoutProps) {
   const handleLogout = async () => {
     try {
       await logout();
-      router.push('/');
+      router.push('/auth/clinic/login');
     } catch (error) {
       console.error('Logout error:', error);
-      router.push('/');
+      router.push('/auth/clinic/login');
     }
   };
 

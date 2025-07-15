@@ -4,12 +4,76 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useClinicData } from '../../lib/real-time-hooks';
 import { useState } from 'react';
 import { FaHospital, FaEnvelope, FaPhone, FaMapMarkerAlt, FaLock, FaCreditCard, FaCheckCircle, FaTimesCircle, FaBell } from 'react-icons/fa';
+import { getAuth, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 
 export default function ClinicSettingsPage() {
     const { user } = useAuth();
     const clinicId = user?.uid || '';
     const { clinicData, loading } = useClinicData(clinicId); // Placeholder, should come from backend
     const [notifNewPatient, setNotifNewPatient] = useState(true); // Placeholder
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+    const [passwordSuccess, setPasswordSuccess] = useState('');
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [currentPassword, setCurrentPassword] = useState('');
+
+    const openPasswordModal = () => {
+        setShowPasswordModal(true);
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setPasswordError('');
+        setPasswordSuccess('');
+    };
+    const closePasswordModal = () => {
+        setShowPasswordModal(false);
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setPasswordError('');
+        setPasswordSuccess('');
+    };
+    const handlePasswordChange = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setPasswordError('');
+        setPasswordSuccess('');
+        if (newPassword.length < 8) {
+            setPasswordError('パスワードは8文字以上で入力してください。');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setPasswordError('パスワードが一致しません。');
+            return;
+        }
+        if (!currentPassword) {
+            setPasswordError('現在のパスワードを入力してください。');
+            return;
+        }
+        setPasswordLoading(true);
+        try {
+            const auth = getAuth();
+            if (!auth.currentUser || !auth.currentUser.email) throw new Error('ユーザーが見つかりません。再度ログインしてください。');
+            // Re-authenticate
+            const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+            await reauthenticateWithCredential(auth.currentUser, credential);
+            // Update password
+            await updatePassword(auth.currentUser, newPassword);
+            setPasswordSuccess('パスワードが正常に変更されました。');
+            setTimeout(() => {
+                closePasswordModal();
+            }, 1500);
+        } catch (err: any) {
+            if (err.code === 'auth/wrong-password') {
+                setPasswordError('現在のパスワードが正しくありません。');
+            } else {
+                setPasswordError(err.message || 'パスワードの変更に失敗しました。');
+            }
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
 
     // Stripe connection status: check if baseFeeStripeCustomerId and baseFeeStripeSubscriptionId exist
     const isStripeConnected = !!(clinicData && (clinicData as any).baseFeeStripeCustomerId && (clinicData as any).baseFeeStripeSubscriptionId);
@@ -87,11 +151,40 @@ export default function ClinicSettingsPage() {
                                         <FaLock className="text-purple-400" /> ログイン情報
                                     </div>
                                     <div className="flex flex-col md:flex-row gap-4">
-                                        <button onClick={handleChangeEmail} className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold shadow hover:bg-blue-600 transition">メールアドレス変更</button>
-                                        <button onClick={handleResetPassword} className="px-4 py-2 bg-purple-500 text-white rounded-lg font-semibold shadow hover:bg-purple-600 transition">パスワードリセット</button>
+                                        {/* <button onClick={handleChangeEmail} className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold shadow hover:bg-blue-600 transition">メールアドレス変更</button> */}
+                                        <button onClick={openPasswordModal} className="px-4 py-2 bg-purple-500 text-white rounded-lg font-semibold shadow hover:bg-purple-600 transition">パスワード変更</button>
                                     </div>
                                 </div>
                             </section>
+                            {/* Password Change Modal */}
+                            {showPasswordModal && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                                    <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md relative">
+                                        <button onClick={closePasswordModal} className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+                                        <h2 className="text-xl font-bold mb-4 text-purple-700">パスワード変更</h2>
+                                        <form onSubmit={handlePasswordChange} className="space-y-4">
+                                            <div>
+                                                <label className="block text-sm font-semibold mb-1">現在のパスワード</label>
+                                                <input type="password" className="w-full border rounded px-3 py-2" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold mb-1">新しいパスワード</label>
+                                                <input type="password" className="w-full border rounded px-3 py-2" value={newPassword} onChange={e => setNewPassword(e.target.value)} minLength={8} required />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold mb-1">新しいパスワード（確認）</label>
+                                                <input type="password" className="w-full border rounded px-3 py-2" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} minLength={8} required />
+                                            </div>
+                                            {passwordError && <div className="text-red-600 text-sm">{passwordError}</div>}
+                                            {passwordSuccess && <div className="text-green-600 text-sm">{passwordSuccess}</div>}
+                                            <div className="flex gap-4 mt-4">
+                                                <button type="submit" className="px-4 py-2 bg-purple-600 text-white rounded font-semibold shadow hover:bg-purple-700 transition" disabled={passwordLoading}>{passwordLoading ? '変更中...' : '変更する'}</button>
+                                                <button type="button" onClick={closePasswordModal} className="px-4 py-2 bg-gray-300 text-gray-700 rounded font-semibold shadow hover:bg-gray-400 transition">キャンセル</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            )}
                             {/* Notification Preferences */}
                             <section className="w-full">
                                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl shadow p-6 border border-purple-100">

@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { FaUser, FaUserEdit, FaArrowLeft, FaEnvelope, FaPhone, FaBirthdayCake, FaHome, FaSave, FaTimes } from 'react-icons/fa';
-
+import DashboardLayout from '../../components/DashboardLayout';
 interface ProfileData {
   firstName: string;
   lastName: string;
@@ -174,6 +174,7 @@ export default function PatientProfile() {
   };
 
   return (
+    <DashboardLayout allowedRoles={['patient']}>
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-white">
       {/* Sticky Header */}
       <header className="sticky top-0 z-20 bg-gradient-to-r from-blue-100 via-white to-blue-50 shadow-md px-4 py-4 flex justify-between items-center border-b border-blue-200">
@@ -344,5 +345,6 @@ export default function PatientProfile() {
         &copy; {new Date().getFullYear()} Health Science SaaS. All rights reserved.
       </footer>
     </div>
+    </DashboardLayout>
   );
 } 
