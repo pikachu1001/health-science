@@ -242,10 +242,7 @@ export default function Home() {
             <p className="mb-4 text-center text-gray-700">{modalPlan.description}</p>
             <div className="mb-4 bg-blue-50 rounded-lg p-4 flex flex-col items-center">
               <span className="text-3xl font-extrabold text-blue-800 mb-1">¥{modalPlan.price.toLocaleString()}<span className="text-lg font-medium text-gray-500">/月</span></span>
-              <div className="flex space-x-4 mt-2">
-                <span className="flex items-center text-green-700 font-semibold"><svg className="h-5 w-5 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>クリニック報酬: ¥{modalPlan.commission.toLocaleString()}</span>
-                <span className="flex items-center text-purple-700 font-semibold"><svg className="h-5 w-5 mr-1 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>会社手数料: ¥{modalPlan.companyCut.toLocaleString()}</span>
-              </div>
+              
             </div>
             <div className="mb-6">
               <p className="text-sm font-semibold text-gray-600 mb-2">プランの特徴:</p>
