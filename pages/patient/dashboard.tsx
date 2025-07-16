@@ -30,8 +30,8 @@ export default function PatientDashboard() {
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [subscriptionMessage, setSubscriptionMessage] = useState<string | null>(null);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<string>('loading...');
-  const [clinicName, setClinicName] = useState<string>('loading...');
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>('読み込み中...');
+  const [clinicName, setClinicName] = useState<string>('読み込み中...');
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
 
@@ -87,7 +87,7 @@ export default function PatientDashboard() {
   }, [router.query]);
 
   if (loading || !user) {
-    return <div>Loading...</div>;
+    return <div>読み込み中...</div>;
   }
 
   const handleLogout = async () => {
